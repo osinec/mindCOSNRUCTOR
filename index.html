@@ -68,8 +68,8 @@
         .canvas-wrapper {
             position: relative;
             margin: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
             transform-origin: 0 0;
+            transition: transform 0.1s ease;
         }
         #pdf-canvas {
             display: block;
@@ -203,7 +203,8 @@
             zoomLevel: document.getElementById('zoom-level'),
             saveOriginalBtn: document.getElementById('save-original'),
             saveA4Btn: document.getElementById('save-a4'),
-            canvasWrapper: document.getElementById('canvas-wrapper')
+            canvasWrapper: document.getElementById('canvas-wrapper'),
+            canvasContainer: document.querySelector('.canvas-container')
         };
         
         elements.ctx = elements.drawingCanvas.getContext('2d', { willReadFrequently: true });
@@ -222,7 +223,9 @@
             viewport: null,
             originalWidth: 0,
             originalHeight: 0,
-            pdfBytes: null
+            pdfBytes: null,
+            renderScale: 2,
+            maxScale: 5.0
         };
         
         // Инициализация
@@ -231,49 +234,79 @@
         }
         
         function setupEventListeners() {
-            elements.uploadBtn.addEventListener('click', () => elements.pdfInput.click());
-            elements.pdfInput.addEventListener('change', handleFileUpload);
+            // Исправленный обработчик для кнопки загрузки
+            elements.uploadBtn.addEventListener('click', function() {
+                elements.pdfInput.click();
+            });
+            
+            // Обработчик изменения файла
+            elements.pdfInput.addEventListener('change', function(e) {
+                handleFileUpload(e).catch(error => {
+                    console.error('Error handling file upload:', error);
+                    alert('Ошибка при загрузке файла');
+                });
+            });
             
             elements.toolSelect.addEventListener('change', () => {
                 state.currentTool = elements.toolSelect.value;
             });
             
-            // Инструменты рисования
             elements.drawingCanvas.addEventListener('mousedown', startDrawing);
             elements.drawingCanvas.addEventListener('mousemove', draw);
             elements.drawingCanvas.addEventListener('mouseup', stopDrawing);
             elements.drawingCanvas.addEventListener('mouseout', stopDrawing);
             
-            // Управление масштабом
             elements.zoomInBtn.addEventListener('click', () => changeZoom(1.2));
             elements.zoomOutBtn.addEventListener('click', () => changeZoom(0.8));
             
-            // Сохранение
             elements.saveOriginalBtn.addEventListener('click', saveOriginalPDF);
             elements.saveA4Btn.addEventListener('click', saveA4PDF);
         }
         
         async function handleFileUpload(e) {
             const file = e.target.files[0];
-            if (!file) return;
+            if (!file) {
+                console.log('Файл не выбран');
+                return;
+            }
             
-            const fileReader = new FileReader();
-            fileReader.onload = async function() {
-                try {
-                    state.pdfBytes = new Uint8Array(this.result);
-                    state.pdfDoc = await pdfjsLib.getDocument({
-                        data: state.pdfBytes,
-                        cMapUrl: pdfjsLib.cMapUrl,
-                        cMapPacked: pdfjsLib.cMapPacked
-                    }).promise;
-                    
-                    await renderPage(state.currentPage);
-                } catch (error) {
-                    console.error('Error loading PDF:', error);
-                    alert('Ошибка загрузки PDF файла');
-                }
-            };
-            fileReader.readAsArrayBuffer(file);
+            // Проверка расширения файла
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                alert('Пожалуйста, выберите файл в формате PDF');
+                return;
+            }
+            
+            console.log('Выбран файл:', file.name);
+            
+            return new Promise((resolve, reject) => {
+                const fileReader = new FileReader();
+                
+                fileReader.onload = async function() {
+                    try {
+                        state.pdfBytes = new Uint8Array(this.result);
+                        state.pdfDoc = await pdfjsLib.getDocument({
+                            data: state.pdfBytes,
+                            cMapUrl: pdfjsLib.cMapUrl,
+                            cMapPacked: pdfjsLib.cMapPacked
+                        }).promise;
+                        
+                        await renderPage(state.currentPage);
+                        resolve();
+                    } catch (error) {
+                        console.error('Error loading PDF:', error);
+                        alert('Ошибка загрузки PDF файла');
+                        reject(error);
+                    }
+                };
+                
+                fileReader.onerror = function(error) {
+                    console.error('FileReader error:', error);
+                    alert('Ошибка чтения файла');
+                    reject(error);
+                };
+                
+                fileReader.readAsArrayBuffer(file);
+            });
         }
         
         async function renderPage(pageNum) {
@@ -283,14 +316,13 @@
                 const page = await state.pdfDoc.getPage(pageNum);
                 
                 // Получаем оригинальный размер страницы
-                const viewportAt100 = page.getViewport({ scale: 1.0 });
-                state.originalWidth = viewportAt100.width;
-                state.originalHeight = viewportAt100.height;
+                state.viewport = page.getViewport({ scale: 1.0 });
+                state.originalWidth = state.viewport.width;
+                state.originalHeight = state.viewport.height;
                 
                 // Рассчитываем базовый масштаб для отображения на экране
-                const container = document.querySelector('.canvas-container');
-                const containerWidth = container.clientWidth - 40;
-                const containerHeight = container.clientHeight - 40;
+                const containerWidth = elements.canvasContainer.clientWidth - 40;
+                const containerHeight = elements.canvasContainer.clientHeight - 40;
                 
                 state.baseScale = Math.min(
                     containerWidth / state.originalWidth,
@@ -299,36 +331,32 @@
                 
                 // Устанавливаем начальный масштаб
                 state.currentScale = state.baseScale;
-                updateCanvasSize();
                 
-                // Рендерим PDF с высоким качеством
-                state.viewport = page.getViewport({ scale: state.currentScale });
+                // Рендерим PDF с высоким качеством (в увеличенном размере)
+                const renderViewport = page.getViewport({ scale: state.currentScale * state.renderScale });
                 
-                // Устанавливаем размеры canvas (в 2 раза больше для retina-экранов)
-                const dpi = window.devicePixelRatio || 1;
-                elements.pdfCanvas.width = state.viewport.width * dpi;
-                elements.pdfCanvas.height = state.viewport.height * dpi;
-                elements.drawingCanvas.width = state.viewport.width * dpi;
-                elements.drawingCanvas.height = state.viewport.height * dpi;
+                // Устанавливаем размеры canvas (в увеличенном размере для качества)
+                elements.pdfCanvas.width = renderViewport.width;
+                elements.pdfCanvas.height = renderViewport.height;
+                elements.drawingCanvas.width = renderViewport.width;
+                elements.drawingCanvas.height = renderViewport.height;
                 
                 // Масштабируем canvas для отображения
-                elements.pdfCanvas.style.width = state.viewport.width + 'px';
-                elements.pdfCanvas.style.height = state.viewport.height + 'px';
-                elements.drawingCanvas.style.width = state.viewport.width + 'px';
-                elements.drawingCanvas.style.height = state.viewport.height + 'px';
+                elements.pdfCanvas.style.width = (renderViewport.width / state.renderScale) + 'px';
+                elements.pdfCanvas.style.height = (renderViewport.height / state.renderScale) + 'px';
+                elements.drawingCanvas.style.width = (renderViewport.width / state.renderScale) + 'px';
+                elements.drawingCanvas.style.height = (renderViewport.height / state.renderScale) + 'px';
                 
                 // Рендерим PDF
                 await page.render({
                     canvasContext: elements.pdfCanvas.getContext('2d'),
-                    viewport: state.viewport,
-                    intent: 'print',
-                    transform: [dpi, 0, 0, dpi, 0, 0]
+                    viewport: renderViewport,
+                    intent: 'print'
                 }).promise;
                 
                 // Очищаем слои при загрузке новой страницы
                 state.layers = [];
-                elements.ctx.scale(dpi, dpi);
-                elements.ctx.clearRect(0, 0, state.viewport.width, state.viewport.height);
+                elements.ctx.clearRect(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
                 
                 // Обновляем отображение масштаба
                 updateZoomLevel();
@@ -338,11 +366,6 @@
             }
         }
         
-        function updateCanvasSize() {
-            const scale = state.currentScale / state.baseScale;
-            elements.canvasWrapper.style.transform = `scale(${scale})`;
-        }
-        
         function updateZoomLevel() {
             elements.zoomLevel.textContent = `${Math.round(state.currentScale * 100)}%`;
         }
@@ -350,10 +373,14 @@
         function changeZoom(zoomFactor) {
             if (!state.pdfDoc) return;
             
-            state.currentScale *= zoomFactor;
-            state.currentScale = Math.max(0.1, Math.min(state.currentScale, 5.0)); // Ограничиваем масштаб
+            const newScale = state.currentScale * zoomFactor;
             
-            updateCanvasSize();
+            // Ограничиваем масштаб
+            state.currentScale = Math.max(0.1, Math.min(newScale, state.maxScale));
+            
+            // Применяем масштаб через CSS transform
+            elements.canvasWrapper.style.transform = `scale(${state.currentScale})`;
+            
             updateZoomLevel();
         }
         
@@ -380,8 +407,8 @@
                 }).promise;
                 
                 // Рисуем поверх слой с правками (масштабируем к оригинальному размеру)
-                const scaleX = state.originalWidth / elements.drawingCanvas.width * dpi;
-                const scaleY = state.originalHeight / elements.drawingCanvas.height * dpi;
+                const scaleX = state.originalWidth / (elements.drawingCanvas.width / state.renderScale) * dpi;
+                const scaleY = state.originalHeight / (elements.drawingCanvas.height / state.renderScale) * dpi;
                 tempCtx.save();
                 tempCtx.scale(scaleX, scaleY);
                 tempCtx.drawImage(elements.drawingCanvas, 0, 0);
@@ -428,8 +455,8 @@
                 }).promise;
                 
                 // Рисуем поверх слой с правками (масштабируем к оригинальному размеру)
-                const scaleX = state.originalWidth / elements.drawingCanvas.width * dpi;
-                const scaleY = state.originalHeight / elements.drawingCanvas.height * dpi;
+                const scaleX = state.originalWidth / (elements.drawingCanvas.width / state.renderScale) * dpi;
+                const scaleY = state.originalHeight / (elements.drawingCanvas.height / state.renderScale) * dpi;
                 tempCtx.save();
                 tempCtx.scale(scaleX, scaleY);
                 tempCtx.drawImage(elements.drawingCanvas, 0, 0);
@@ -466,18 +493,17 @@
             }
         }
         
-        // Функции для рисования (аналогичные предыдущим примерам)
         function startDrawing(e) {
             state.isDrawing = true;
             const rect = elements.drawingCanvas.getBoundingClientRect();
-            const scale = state.currentScale / state.baseScale;
-            state.lastX = (e.clientX - rect.left) / scale;
-            state.lastY = (e.clientY - rect.top) / scale;
+            const scale = state.currentScale * state.renderScale;
+            state.lastX = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width);
+            state.lastY = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height);
             
             if (state.currentTool === 'text') {
                 const text = prompt('Введите текст:', 'Текст');
                 if (text) {
-                    elements.ctx.font = `${elements.fontSize.value}px ${elements.fontSelect.value}`;
+                    elements.ctx.font = `${elements.fontSize.value * state.renderScale}px ${elements.fontSelect.value}`;
                     elements.ctx.fillStyle = elements.colorPicker.value;
                     elements.ctx.fillText(text, state.lastX, state.lastY);
                     
@@ -486,7 +512,7 @@
                         x: state.lastX,
                         y: state.lastY,
                         text: text,
-                        font: `${elements.fontSize.value}px ${elements.fontSelect.value}`,
+                        font: `${elements.fontSize.value * state.renderScale}px ${elements.fontSelect.value}`,
                         color: elements.colorPicker.value
                     });
                 }
@@ -498,12 +524,11 @@
             if (!state.isDrawing) return;
             
             const rect = elements.drawingCanvas.getBoundingClientRect();
-            const scale = state.currentScale / state.baseScale;
-            const x = (e.clientX - rect.left) / scale;
-            const y = (e.clientY - rect.top) / scale;
+            const x = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height);
             
             elements.ctx.strokeStyle = state.currentTool === 'eraser' ? 'white' : elements.colorPicker.value;
-            elements.ctx.lineWidth = elements.brushSize.value;
+            elements.ctx.lineWidth = elements.brushSize.value * state.renderScale;
             elements.ctx.lineCap = 'round';
             
             switch(state.currentTool) {
@@ -541,9 +566,8 @@
             if (!state.isDrawing) return;
             
             const rect = elements.drawingCanvas.getBoundingClientRect();
-            const scale = state.currentScale / state.baseScale;
-            const x = (e.clientX - rect.left) / scale;
-            const y = (e.clientY - rect.top) / scale;
+            const x = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height);
             
             if (['rect', 'circle'].includes(state.currentTool)) {
                 state.layers.push({
@@ -553,7 +577,7 @@
                     endX: x,
                     endY: y,
                     color: elements.colorPicker.value,
-                    lineWidth: elements.brushSize.value
+                    lineWidth: elements.brushSize.value * state.renderScale
                 });
             } else if (state.currentTool === 'brush' || state.currentTool === 'eraser') {
                 state.layers.push({
