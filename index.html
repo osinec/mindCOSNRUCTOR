@@ -239,7 +239,7 @@
             originalWidth: 0,
             originalHeight: 0,
             pdfBytes: null,
-            renderScale: 2,
+            renderScale: 1,
             maxScale: 5.0
         };
         
@@ -403,7 +403,6 @@
             try {
                 console.log('Starting saveOriginalPDF');
                 const pdf = new jsPDF({
-                    orientation: 'portrait',
                     unit: 'pt',
                     compress: true
                 });
@@ -415,9 +414,8 @@
                     const originalHeight = viewport.height;
                     
                     const tempCanvas = document.createElement('canvas');
-                    const dpi = 3;
-                    tempCanvas.width = originalWidth * dpi;
-                    tempCanvas.height = originalHeight * dpi;
+                    tempCanvas.width = originalWidth;
+                    tempCanvas.height = originalHeight;
                     const tempCtx = tempCanvas.getContext('2d');
                     
                     tempCtx.fillStyle = 'white';
@@ -425,42 +423,44 @@
                     
                     await page.render({
                         canvasContext: tempCtx,
-                        viewport: page.getViewport({ scale: dpi }),
+                        viewport: viewport,
                         intent: 'print'
                     }).promise;
                     
                     const pageLayers = state.layers.filter(layer => layer.page === pageNum);
-                    tempCtx.save();
-                    const scaleX = originalWidth / elements.drawingCanvas.width;
-                    const scaleY = originalHeight / elements.drawingCanvas.height;
-                    tempCtx.scale(dpi / state.renderScale, dpi / state.renderScale);
+                    if (pageLayers.length > 0) {
+                        tempCtx.save();
+                        pageLayers.forEach(layer => {
+                            if (layer.type === 'rect') {
+                                tempCtx.strokeStyle = layer.color;
+                                tempCtx.lineWidth = layer.lineWidth / state.renderScale;
+                                tempCtx.beginPath();
+                                tempCtx.rect(layer.x / state.renderScale, layer.y / state.renderScale, (layer.endX - layer.x) / state.renderScale, (layer.endY - layer.y) / state.renderScale);
+                                tempCtx.stroke();
+                            } else if (layer.type === 'circle') {
+                                tempCtx.strokeStyle = layer.color;
+                                tempCtx.lineWidth = layer.lineWidth / state.renderScale;
+                                tempCtx.beginPath();
+                                const radius = Math.sqrt(Math.pow((layer.endX - layer.x) / state.renderScale, 2) + Math.pow((layer.endY - layer.y) / state.renderScale, 2));
+                                tempCtx.arc(layer.x / state.renderScale, layer.y / state.renderScale, radius, 0, Math.PI * 2);
+                                tempCtx.stroke();
+                            } else if (layer.type === 'text') {
+                                tempCtx.font = layer.font.replace(/\d+/, match => parseInt(match) / state.renderScale);
+                                tempCtx.fillStyle = layer.color;
+                                tempCtx.fillText(layer.text, layer.x / state.renderScale, layer.y / state.renderScale);
+                            } else if (layer.type === 'image') {
+                                const img = new Image();
+                                img.src = layer.data;
+                                img.onload = () => tempCtx.drawImage(img, 0, 0, originalWidth, originalHeight);
+                            }
+                        });
+                        tempCtx.restore();
+                    }
                     
-                    pageLayers.forEach(layer => {
-                        if (layer.type === 'rect') {
-                            tempCtx.strokeStyle = layer.color;
-                            tempCtx.lineWidth = layer.lineWidth / (scaleX * state.renderScale);
-                            tempCtx.beginPath();
-                            tempCtx.rect(layer.x / (state.renderScale * scaleX), layer.y / (state.renderScale * scaleY), (layer.endX - layer.x) / (state.renderScale * scaleX), (layer.endY - layer.y) / (state.renderScale * scaleY));
-                            tempCtx.stroke();
-                        } else if (layer.type === 'circle') {
-                            tempCtx.strokeStyle = layer.color;
-                            tempCtx.lineWidth = layer.lineWidth / (scaleX * state.renderScale);
-                            tempCtx.beginPath();
-                            const radius = Math.sqrt(Math.pow((layer.endX - layer.x) / (state.renderScale * scaleX), 2) + Math.pow((layer.endY - layer.y) / (state.renderScale * scaleY), 2));
-                            tempCtx.arc(layer.x / (state.renderScale * scaleX), layer.y / (state.renderScale * scaleY), radius, 0, Math.PI * 2);
-                            tempCtx.stroke();
-                        } else if (layer.type === 'text') {
-                            tempCtx.font = layer.font.replace(/\d+/, match => parseInt(match) / (state.renderScale * scaleY));
-                            tempCtx.fillStyle = layer.color;
-                            tempCtx.fillText(layer.text, layer.x / (state.renderScale * scaleX), layer.y / (state.renderScale * scaleY));
-                        }
-                    });
-                    tempCtx.restore();
-                    
-                    if (pageNum > 1) pdf.addPage([originalWidth, originalHeight], 'p');
+                    if (pageNum > 1) pdf.addPage([originalWidth, originalHeight], originalWidth > originalHeight ? 'l' : 'p');
                     pdf.addImage(
-                        tempCanvas.toDataURL('image/jpeg', 1.0),
-                        'JPEG',
+                        tempCanvas.toDataURL('image/png', 1.0),
+                        'PNG',
                         0,
                         0,
                         originalWidth,
@@ -468,7 +468,7 @@
                         undefined,
                         'FAST'
                     );
-                    console.log(`Page ${pageNum} added to PDF`);
+                    console.log(`Page ${pageNum} added to PDF with ${pageLayers.length} layers`);
                 }
                 
                 pdf.save('document-edited.pdf');
@@ -488,7 +488,6 @@
             try {
                 console.log('Starting saveA4PDF');
                 const pdf = new jsPDF({
-                    orientation: 'portrait',
                     unit: 'mm',
                     format: 'a4',
                     compress: true
@@ -501,9 +500,8 @@
                     const originalHeight = viewport.height;
                     
                     const tempCanvas = document.createElement('canvas');
-                    const dpi = 3;
-                    tempCanvas.width = originalWidth * dpi;
-                    tempCanvas.height = originalHeight * dpi;
+                    tempCanvas.width = originalWidth;
+                    tempCanvas.height = originalHeight;
                     const tempCtx = tempCanvas.getContext('2d');
                     
                     tempCtx.fillStyle = 'white';
@@ -511,59 +509,58 @@
                     
                     await page.render({
                         canvasContext: tempCtx,
-                        viewport: page.getViewport({ scale: dpi }),
+                        viewport: viewport,
                         intent: 'print'
                     }).promise;
                     
                     const pageLayers = state.layers.filter(layer => layer.page === pageNum);
-                    tempCtx.save();
-                    const scaleX = originalWidth / elements.drawingCanvas.width;
-                    const scaleY = originalHeight / elements.drawingCanvas.height;
-                    tempCtx.scale(dpi / state.renderScale, dpi / state.renderScale);
-                    
-                    pageLayers.forEach(layer => {
-                        if (layer.type === 'rect') {
-                            tempCtx.strokeStyle = layer.color;
-                            tempCtx.lineWidth = layer.lineWidth / (scaleX * state.renderScale);
-                            tempCtx.beginPath();
-                            tempCtx.rect(layer.x / (state.renderScale * scaleX), layer.y / (state.renderScale * scaleY), (layer.endX - layer.x) / (state.renderScale * scaleX), (layer.endY - layer.y) / (state.renderScale * scaleY));
-                            tempCtx.stroke();
-                        } else if (layer.type === 'circle') {
-                            tempCtx.strokeStyle = layer.color;
-                            tempCtx.lineWidth = layer.lineWidth / (scaleX * state.renderScale);
-                            tempCtx.beginPath();
-                            const radius = Math.sqrt(Math.pow((layer.endX - layer.x) / (state.renderScale * scaleX), 2) + Math.pow((layer.endY - layer.y) / (state.renderScale * scaleY), 2));
-                            tempCtx.arc(layer.x / (state.renderScale * scaleX), layer.y / (state.renderScale * scaleY), radius, 0, Math.PI * 2);
-                            tempCtx.stroke();
-                        } else if (layer.type === 'text') {
-                            tempCtx.font = layer.font.replace(/\d+/, match => parseInt(match) / (state.renderScale * scaleY));
-                            tempCtx.fillStyle = layer.color;
-                            tempCtx.fillText(layer.text, layer.x / (state.renderScale * scaleX), layer.y / (state.renderScale * scaleY));
-                        }
-                    });
-                    tempCtx.restore();
+                    if (pageLayers.length > 0) {
+                        tempCtx.save();
+                        pageLayers.forEach(layer => {
+                            if (layer.type === 'rect') {
+                                tempCtx.strokeStyle = layer.color;
+                                tempCtx.lineWidth = layer.lineWidth / state.renderScale;
+                                tempCtx.beginPath();
+                                tempCtx.rect(layer.x / state.renderScale, layer.y / state.renderScale, (layer.endX - layer.x) / state.renderScale, (layer.endY - layer.y) / state.renderScale);
+                                tempCtx.stroke();
+                            } else if (layer.type === 'circle') {
+                                tempCtx.strokeStyle = layer.color;
+                                tempCtx.lineWidth = layer.lineWidth / state.renderScale;
+                                tempCtx.beginPath();
+                                const radius = Math.sqrt(Math.pow((layer.endX - layer.x) / state.renderScale, 2) + Math.pow((layer.endY - layer.y) / state.renderScale, 2));
+                                tempCtx.arc(layer.x / state.renderScale, layer.y / state.renderScale, radius, 0, Math.PI * 2);
+                                tempCtx.stroke();
+                            } else if (layer.type === 'text') {
+                                tempCtx.font = layer.font.replace(/\d+/, match => parseInt(match) / state.renderScale);
+                                tempCtx.fillStyle = layer.color;
+                                tempCtx.fillText(layer.text, layer.x / state.renderScale, layer.y / state.renderScale);
+                            } else if (layer.type === 'image') {
+                                const img = new Image();
+                                img.src = layer.data;
+                                img.onload = () => tempCtx.drawImage(img, 0, 0, originalWidth, originalHeight);
+                            }
+                        });
+                        tempCtx.restore();
+                    }
                     
                     const a4Width = pdf.internal.pageSize.getWidth();
                     const a4Height = pdf.internal.pageSize.getHeight();
-                    const scale = Math.min(
-                        a4Width / (originalWidth / dpi),
-                        a4Height / (originalHeight / dpi)
-                    ) * 0.95;
-                    const x = (a4Width - (originalWidth / dpi) * scale) / 2;
-                    const y = (a4Height - (originalHeight / dpi) * scale) / 2;
+                    const scale = Math.min(a4Width / originalWidth, a4Height / originalHeight) * 0.95;
+                    const x = (a4Width - originalWidth * scale) / 2;
+                    const y = (a4Height - originalHeight * scale) / 2;
                     
                     if (pageNum > 1) pdf.addPage();
                     pdf.addImage(
-                        tempCanvas.toDataURL('image/jpeg', 1.0),
-                        'JPEG',
+                        tempCanvas.toDataURL('image/png', 1.0),
+                        'PNG',
                         x,
                         y,
-                        (originalWidth / dpi) * scale,
-                        (originalHeight / dpi) * scale,
+                        originalWidth * scale,
+                        originalHeight * scale,
                         undefined,
                         'FAST'
                     );
-                    console.log(`Page ${pageNum} added to A4 PDF`);
+                    console.log(`Page ${pageNum} added to A4 PDF with ${pageLayers.length} layers`);
                 }
                 
                 pdf.save('document-a4.pdf');
@@ -706,7 +703,7 @@
                     case 'image':
                         const img = new Image();
                         img.src = layer.data;
-                        img.onload = () => elements.ctx.drawImage(img, 0, 0);
+                        img.onload = () => elements.ctx.drawImage(img, 0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
                         break;
                 }
             });
