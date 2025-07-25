@@ -239,7 +239,7 @@
             originalWidth: 0,
             originalHeight: 0,
             pdfBytes: null,
-            renderScale: 1,
+            renderScale: 2, // Увеличено для лучшего качества
             maxScale: 5.0
         };
         
@@ -404,7 +404,7 @@
                 console.log('Starting saveOriginalPDF');
                 const pdf = new jsPDF({
                     unit: 'pt',
-                    compress: true
+                    compress: false // Отключено сжатие для лучшего качества
                 });
                 
                 for (let pageNum = 1; pageNum <= state.totalPages; pageNum++) {
@@ -414,8 +414,9 @@
                     const originalHeight = viewport.height;
                     
                     const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = originalWidth;
-                    tempCanvas.height = originalHeight;
+                    // Увеличено разрешение для качества
+                    tempCanvas.width = originalWidth * 2;
+                    tempCanvas.height = originalHeight * 2;
                     const tempCtx = tempCanvas.getContext('2d');
                     
                     tempCtx.fillStyle = 'white';
@@ -423,19 +424,24 @@
                     
                     await page.render({
                         canvasContext: tempCtx,
-                        viewport: viewport,
+                        viewport: page.getViewport({ scale: 2.0 }),
                         intent: 'print'
                     }).promise;
                     
-                    // Наложение содержимого drawingCanvas
-                    const pageLayers = state.layers.filter(layer => layer.page === pageNum);
-                    if (pageLayers.length > 0 || elements.drawingCanvas.width > 0) {
-                        tempCtx.drawImage(elements.drawingCanvas, 0, 0, originalWidth, originalHeight);
+                    // Наложение содержимого drawingCanvas с увеличенным разрешением
+                    if (elements.drawingCanvas.width > 0) {
+                        const scaledDrawing = document.createElement('canvas');
+                        scaledDrawing.width = originalWidth * 2;
+                        scaledDrawing.height = originalHeight * 2;
+                        const scaledCtx = scaledDrawing.getContext('2d');
+                        scaledCtx.scale(2, 2); // Увеличение разрешения
+                        scaledCtx.drawImage(elements.drawingCanvas, 0, 0);
+                        tempCtx.drawImage(scaledDrawing, 0, 0);
                     }
                     
                     if (pageNum > 1) pdf.addPage([originalWidth, originalHeight], originalWidth > originalHeight ? 'l' : 'p');
                     pdf.addImage(
-                        tempCanvas.toDataURL('image/png', 1.0),
+                        tempCanvas.toDataURL('image/png', 1.0), // Качество 1.0 для PNG
                         'PNG',
                         0,
                         0,
@@ -444,7 +450,7 @@
                         undefined,
                         'FAST'
                     );
-                    console.log(`Page ${pageNum} added to PDF with ${pageLayers.length} layers`);
+                    console.log(`Page ${pageNum} added to PDF`);
                 }
                 
                 pdf.save('document-edited.pdf');
@@ -466,7 +472,7 @@
                 const pdf = new jsPDF({
                     unit: 'mm',
                     format: 'a4',
-                    compress: true
+                    compress: false // Отключено сжатие для лучшего качества
                 });
                 
                 for (let pageNum = 1; pageNum <= state.totalPages; pageNum++) {
@@ -476,8 +482,9 @@
                     const originalHeight = viewport.height;
                     
                     const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = originalWidth;
-                    tempCanvas.height = originalHeight;
+                    // Увеличено разрешение для качества
+                    tempCanvas.width = originalWidth * 2;
+                    tempCanvas.height = originalHeight * 2;
                     const tempCtx = tempCanvas.getContext('2d');
                     
                     tempCtx.fillStyle = 'white';
@@ -485,14 +492,19 @@
                     
                     await page.render({
                         canvasContext: tempCtx,
-                        viewport: viewport,
+                        viewport: page.getViewport({ scale: 2.0 }),
                         intent: 'print'
                     }).promise;
                     
-                    // Наложение содержимого drawingCanvas
-                    const pageLayers = state.layers.filter(layer => layer.page === pageNum);
-                    if (pageLayers.length > 0 || elements.drawingCanvas.width > 0) {
-                        tempCtx.drawImage(elements.drawingCanvas, 0, 0, originalWidth, originalHeight);
+                    // Наложение содержимого drawingCanvas с увеличенным разрешением
+                    if (elements.drawingCanvas.width > 0) {
+                        const scaledDrawing = document.createElement('canvas');
+                        scaledDrawing.width = originalWidth * 2;
+                        scaledDrawing.height = originalHeight * 2;
+                        const scaledCtx = scaledDrawing.getContext('2d');
+                        scaledCtx.scale(2, 2); // Увеличение разрешения
+                        scaledCtx.drawImage(elements.drawingCanvas, 0, 0);
+                        tempCtx.drawImage(scaledDrawing, 0, 0);
                     }
                     
                     const a4Width = pdf.internal.pageSize.getWidth();
@@ -505,7 +517,7 @@
                     
                     if (pageNum > 1) pdf.addPage();
                     pdf.addImage(
-                        tempCanvas.toDataURL('image/png', 1.0),
+                        tempCanvas.toDataURL('image/png', 1.0), // Качество 1.0 для PNG
                         'PNG',
                         xOffset,
                         yOffset,
@@ -514,7 +526,7 @@
                         undefined,
                         'FAST'
                     );
-                    console.log(`Page ${pageNum} added to A4 PDF with ${pageLayers.length} layers, scale: ${scale}`);
+                    console.log(`Page ${pageNum} added to A4 PDF, scale: ${scale}`);
                 }
                 
                 pdf.save('document-a4.pdf');
@@ -616,7 +628,7 @@
             } else if (state.currentTool === 'brush' || state.currentTool === 'eraser') {
                 state.layers.push({
                     type: 'image',
-                    data: elements.drawingCanvas.toDataURL('image/png'),
+                    data: elements.drawingCanvas.toDataURL('image/png', 1.0), // Качество 1.0
                     page: state.currentPage
                 });
             }
