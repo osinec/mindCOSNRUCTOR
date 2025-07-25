@@ -427,34 +427,10 @@
                         intent: 'print'
                     }).promise;
                     
+                    // Наложение содержимого drawingCanvas
                     const pageLayers = state.layers.filter(layer => layer.page === pageNum);
-                    if (pageLayers.length > 0) {
-                        tempCtx.save();
-                        pageLayers.forEach(layer => {
-                            if (layer.type === 'rect') {
-                                tempCtx.strokeStyle = layer.color;
-                                tempCtx.lineWidth = layer.lineWidth / state.renderScale;
-                                tempCtx.beginPath();
-                                tempCtx.rect(layer.x / state.renderScale, layer.y / state.renderScale, (layer.endX - layer.x) / state.renderScale, (layer.endY - layer.y) / state.renderScale);
-                                tempCtx.stroke();
-                            } else if (layer.type === 'circle') {
-                                tempCtx.strokeStyle = layer.color;
-                                tempCtx.lineWidth = layer.lineWidth / state.renderScale;
-                                tempCtx.beginPath();
-                                const radius = Math.sqrt(Math.pow((layer.endX - layer.x) / state.renderScale, 2) + Math.pow((layer.endY - layer.y) / state.renderScale, 2));
-                                tempCtx.arc(layer.x / state.renderScale, layer.y / state.renderScale, radius, 0, Math.PI * 2);
-                                tempCtx.stroke();
-                            } else if (layer.type === 'text') {
-                                tempCtx.font = layer.font.replace(/\d+/, match => parseInt(match) / state.renderScale);
-                                tempCtx.fillStyle = layer.color;
-                                tempCtx.fillText(layer.text, layer.x / state.renderScale, layer.y / state.renderScale);
-                            } else if (layer.type === 'image') {
-                                const img = new Image();
-                                img.src = layer.data;
-                                img.onload = () => tempCtx.drawImage(img, 0, 0, originalWidth, originalHeight);
-                            }
-                        });
-                        tempCtx.restore();
+                    if (pageLayers.length > 0 || elements.drawingCanvas.width > 0) {
+                        tempCtx.drawImage(elements.drawingCanvas, 0, 0, originalWidth, originalHeight);
                     }
                     
                     if (pageNum > 1) pdf.addPage([originalWidth, originalHeight], originalWidth > originalHeight ? 'l' : 'p');
@@ -513,34 +489,10 @@
                         intent: 'print'
                     }).promise;
                     
+                    // Наложение содержимого drawingCanvas
                     const pageLayers = state.layers.filter(layer => layer.page === pageNum);
-                    if (pageLayers.length > 0) {
-                        tempCtx.save();
-                        pageLayers.forEach(layer => {
-                            if (layer.type === 'rect') {
-                                tempCtx.strokeStyle = layer.color;
-                                tempCtx.lineWidth = layer.lineWidth / state.renderScale;
-                                tempCtx.beginPath();
-                                tempCtx.rect(layer.x / state.renderScale, layer.y / state.renderScale, (layer.endX - layer.x) / state.renderScale, (layer.endY - layer.y) / state.renderScale);
-                                tempCtx.stroke();
-                            } else if (layer.type === 'circle') {
-                                tempCtx.strokeStyle = layer.color;
-                                tempCtx.lineWidth = layer.lineWidth / state.renderScale;
-                                tempCtx.beginPath();
-                                const radius = Math.sqrt(Math.pow((layer.endX - layer.x) / state.renderScale, 2) + Math.pow((layer.endY - layer.y) / state.renderScale, 2));
-                                tempCtx.arc(layer.x / state.renderScale, layer.y / state.renderScale, radius, 0, Math.PI * 2);
-                                tempCtx.stroke();
-                            } else if (layer.type === 'text') {
-                                tempCtx.font = layer.font.replace(/\d+/, match => parseInt(match) / state.renderScale);
-                                tempCtx.fillStyle = layer.color;
-                                tempCtx.fillText(layer.text, layer.x / state.renderScale, layer.y / state.renderScale);
-                            } else if (layer.type === 'image') {
-                                const img = new Image();
-                                img.src = layer.data;
-                                img.onload = () => tempCtx.drawImage(img, 0, 0, originalWidth, originalHeight);
-                            }
-                        });
-                        tempCtx.restore();
+                    if (pageLayers.length > 0 || elements.drawingCanvas.width > 0) {
+                        tempCtx.drawImage(elements.drawingCanvas, 0, 0, originalWidth, originalHeight);
                     }
                     
                     const a4Width = pdf.internal.pageSize.getWidth();
