@@ -546,21 +546,23 @@
                     const a4Width = pdf.internal.pageSize.getWidth();
                     const a4Height = pdf.internal.pageSize.getHeight();
                     const scale = Math.min(a4Width / originalWidth, a4Height / originalHeight) * 0.95;
-                    const x = (a4Width - originalWidth * scale) / 2;
-                    const y = (a4Height - originalHeight * scale) / 2;
+                    const scaledWidth = originalWidth * scale;
+                    const scaledHeight = originalHeight * scale;
+                    const xOffset = (a4Width - scaledWidth) / 2;
+                    const yOffset = (a4Height - scaledHeight) / 2;
                     
                     if (pageNum > 1) pdf.addPage();
                     pdf.addImage(
                         tempCanvas.toDataURL('image/png', 1.0),
                         'PNG',
-                        x,
-                        y,
-                        originalWidth * scale,
-                        originalHeight * scale,
+                        xOffset,
+                        yOffset,
+                        scaledWidth,
+                        scaledHeight,
                         undefined,
                         'FAST'
                     );
-                    console.log(`Page ${pageNum} added to A4 PDF with ${pageLayers.length} layers`);
+                    console.log(`Page ${pageNum} added to A4 PDF with ${pageLayers.length} layers, scale: ${scale}`);
                 }
                 
                 pdf.save('document-a4.pdf');
