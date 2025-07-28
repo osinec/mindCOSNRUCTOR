@@ -682,7 +682,7 @@
                 switch(layer.type) {
                     case 'rect':
                         ctx.strokeStyle = layer.color;
-                        ctx.lineWidth = layer.lineWidth;
+                        ctx.lineWidth = layer.lineWidth / state.currentScale; // Коррекция ширины линии
                         ctx.beginPath();
                         ctx.rect(layer.x * scale, layer.y * scale, (layer.endX - layer.x) * scale, (layer.endY - layer.y) * scale);
                         ctx.stroke();
@@ -690,7 +690,7 @@
                     
                     case 'circle':
                         ctx.strokeStyle = layer.color;
-                        ctx.lineWidth = layer.lineWidth;
+                        ctx.lineWidth = layer.lineWidth / state.currentScale; // Коррекция ширины линии
                         ctx.beginPath();
                         const radius = Math.sqrt(Math.pow((layer.endX - layer.x) * scale, 2) + Math.pow((layer.endY - layer.y) * scale, 2));
                         ctx.arc(layer.x * scale, layer.y * scale, radius, 0, Math.PI * 2);
@@ -698,9 +698,15 @@
                         break;
                     
                     case 'text':
-                        ctx.font = layer.font;
+                        ctx.font = layer.font.replace(state.renderScale, 1); // Удаляем лишнее масштабирование
                         ctx.fillStyle = layer.color;
                         ctx.fillText(layer.text, layer.x * scale, layer.y * scale);
+                        break;
+                    
+                    case 'image':
+                        const img = new Image();
+                        img.src = layer.data;
+                        img.onload = () => ctx.drawImage(img, 0, 0, originalWidth * state.renderScale, originalHeight * state.renderScale);
                         break;
                 }
             });
