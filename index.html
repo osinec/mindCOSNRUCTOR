@@ -433,7 +433,8 @@
                         drawingCanvas.width = originalWidth * state.renderScale;
                         drawingCanvas.height = originalHeight * state.renderScale;
                         const drawCtx = drawingCanvas.getContext('2d');
-                        drawCtx.scale(state.renderScale, state.renderScale);
+                        
+                        // Рисуем слои на временном холсте
                         redrawLayersForSave(drawCtx, pageNum, originalWidth, originalHeight);
                         tempCtx.drawImage(drawingCanvas, 0, 0);
                     }
@@ -499,7 +500,7 @@
                         drawingCanvas.width = originalWidth * state.renderScale;
                         drawingCanvas.height = originalHeight * state.renderScale;
                         const drawCtx = drawingCanvas.getContext('2d');
-                        drawCtx.scale(state.renderScale, state.renderScale);
+                        
                         redrawLayersForSave(drawCtx, pageNum, originalWidth, originalHeight);
                         tempCtx.drawImage(drawingCanvas, 0, 0);
                     }
@@ -544,7 +545,7 @@
             if (state.currentTool === 'text') {
                 const text = prompt('Введите текст:', 'Текст');
                 if (text) {
-                    elements.ctx.font = `${elements.fontSize.value * state.renderScale}px ${elements.fontSelect.value}`;
+                    elements.ctx.font = `${elements.fontSize.value}px ${elements.fontSelect.value}`;
                     elements.ctx.fillStyle = elements.colorPicker.value;
                     elements.ctx.fillText(text, state.lastX * scale, state.lastY * scale);
                     
@@ -553,7 +554,7 @@
                         x: state.lastX,
                         y: state.lastY,
                         text: text,
-                        font: `${elements.fontSize.value * state.renderScale}px ${elements.fontSelect.value}`,
+                        font: `${elements.fontSize.value}px ${elements.fontSelect.value}`,
                         color: elements.colorPicker.value,
                         page: state.currentPage
                     });
@@ -571,7 +572,7 @@
             const y = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height) / scale;
             
             elements.ctx.strokeStyle = state.currentTool === 'eraser' ? 'white' : elements.colorPicker.value;
-            elements.ctx.lineWidth = elements.brushSize.value * state.renderScale;
+            elements.ctx.lineWidth = elements.brushSize.value;
             elements.ctx.lineCap = 'round';
             
             switch(state.currentTool) {
@@ -621,7 +622,7 @@
                     endX: x,
                     endY: y,
                     color: elements.colorPicker.value,
-                    lineWidth: elements.brushSize.value * state.renderScale,
+                    lineWidth: elements.brushSize.value,
                     page: state.currentPage
                 });
             } else if (state.currentTool === 'brush' || state.currentTool === 'eraser') {
@@ -645,7 +646,7 @@
                 switch(layer.type) {
                     case 'rect':
                         elements.ctx.strokeStyle = layer.color;
-                        elements.ctx.lineWidth = layer.lineWidth;
+                        elements.ctx.lineWidth = layer.lineWidth * scale;
                         elements.ctx.beginPath();
                         elements.ctx.rect(layer.x * scale, layer.y * scale, (layer.endX - layer.x) * scale, (layer.endY - layer.y) * scale);
                         elements.ctx.stroke();
@@ -653,7 +654,7 @@
                     
                     case 'circle':
                         elements.ctx.strokeStyle = layer.color;
-                        elements.ctx.lineWidth = layer.lineWidth;
+                        elements.ctx.lineWidth = layer.lineWidth * scale;
                         elements.ctx.beginPath();
                         const radius = Math.sqrt(Math.pow((layer.endX - layer.x) * scale, 2) + Math.pow((layer.endY - layer.y) * scale, 2));
                         elements.ctx.arc(layer.x * scale, layer.y * scale, radius, 0, Math.PI * 2);
@@ -677,12 +678,12 @@
         
         function redrawLayersForSave(ctx, pageNum, originalWidth, originalHeight) {
             const pageLayers = state.layers.filter(layer => layer.page === pageNum);
-            const scale = state.renderScale;
             pageLayers.forEach(layer => {
+                const scale = state.renderScale;
                 switch(layer.type) {
                     case 'rect':
                         ctx.strokeStyle = layer.color;
-                        ctx.lineWidth = layer.lineWidth / state.currentScale; // Коррекция ширины линии
+                        ctx.lineWidth = layer.lineWidth * scale;
                         ctx.beginPath();
                         ctx.rect(layer.x * scale, layer.y * scale, (layer.endX - layer.x) * scale, (layer.endY - layer.y) * scale);
                         ctx.stroke();
@@ -690,7 +691,7 @@
                     
                     case 'circle':
                         ctx.strokeStyle = layer.color;
-                        ctx.lineWidth = layer.lineWidth / state.currentScale; // Коррекция ширины линии
+                        ctx.lineWidth = layer.lineWidth * scale;
                         ctx.beginPath();
                         const radius = Math.sqrt(Math.pow((layer.endX - layer.x) * scale, 2) + Math.pow((layer.endY - layer.y) * scale, 2));
                         ctx.arc(layer.x * scale, layer.y * scale, radius, 0, Math.PI * 2);
@@ -698,7 +699,7 @@
                         break;
                     
                     case 'text':
-                        ctx.font = layer.font.replace(state.renderScale, 1); // Удаляем лишнее масштабирование
+                        ctx.font = layer.font;
                         ctx.fillStyle = layer.color;
                         ctx.fillText(layer.text, layer.x * scale, layer.y * scale);
                         break;
@@ -706,7 +707,10 @@
                     case 'image':
                         const img = new Image();
                         img.src = layer.data;
-                        img.onload = () => ctx.drawImage(img, 0, 0, originalWidth * state.renderScale, originalHeight * state.renderScale);
+                        img.onload = () => {
+                            ctx.drawImage(img, 0, 0, originalWidth * scale, originalHeight * scale);
+                            console.log(`Image layer drawn for page ${pageNum}`);
+                        };
                         break;
                 }
             });
