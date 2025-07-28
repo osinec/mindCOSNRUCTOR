@@ -381,8 +381,9 @@
             
             const newScale = state.currentScale * zoomFactor;
             state.currentScale = Math.max(0.1, Math.min(newScale, state.maxScale));
-            elements.canvasWrapper.style.transform = `scale(${state.currentScale})`;
+            elements.canvasWrapper.style.transform = `scale(${state.currentScale / state.baseScale})`;
             updateZoomLevel();
+            redrawLayers(); // Перерисовка слоев с учетом нового масштаба
         }
         
         function changePage(delta) {
@@ -427,14 +428,14 @@
                         intent: 'print'
                     }).promise;
                     
-                    if (elements.drawingCanvas.width > 0 && state.currentPage === pageNum) {
-                        const drawingData = elements.drawingCanvas.getContext('2d').getImageData(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
-                        const scaledDrawing = document.createElement('canvas');
-                        scaledDrawing.width = originalWidth * state.renderScale;
-                        scaledDrawing.height = originalHeight * state.renderScale;
-                        const scaledCtx = scaledDrawing.getContext('2d');
-                        scaledCtx.putImageData(drawingData, 0, 0);
-                        tempCtx.drawImage(scaledDrawing, 0, 0);
+                    if (state.layers.some(layer => layer.page === pageNum)) {
+                        const drawingCanvas = document.createElement('canvas');
+                        drawingCanvas.width = originalWidth * state.renderScale;
+                        drawingCanvas.height = originalHeight * state.renderScale;
+                        const drawCtx = drawingCanvas.getContext('2d');
+                        drawCtx.scale(state.renderScale, state.renderScale);
+                        redrawLayersForSave(drawCtx, pageNum, originalWidth, originalHeight);
+                        tempCtx.drawImage(drawingCanvas, 0, 0);
                     }
                     
                     if (pageNum > 1) pdf.addPage([originalWidth, originalHeight], originalWidth > originalHeight ? 'l' : 'p');
@@ -493,15 +494,14 @@
                         intent: 'print'
                     }).promise;
                     
-                    if (elements.drawingCanvas.width > 0 && state.currentPage === pageNum) {
-                        const drawingData = elements.drawingCanvas.getContext('2d').getImageData(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
-                        const scaledDrawing = document.createElement('canvas');
-                        scaledDrawing.width = originalWidth * state.renderScale;
-                        scaledDrawing.height = originalHeight * state.renderScale;
-                        const scaledCtx = scaledDrawing.getContext('2d');
-                        scaledCtx.scale(state.renderScale, state.renderScale);
-                        scaledCtx.putImageData(drawingData, 0, 0);
-                        tempCtx.drawImage(scaledDrawing, 0, 0);
+                    if (state.layers.some(layer => layer.page === pageNum)) {
+                        const drawingCanvas = document.createElement('canvas');
+                        drawingCanvas.width = originalWidth * state.renderScale;
+                        drawingCanvas.height = originalHeight * state.renderScale;
+                        const drawCtx = drawingCanvas.getContext('2d');
+                        drawCtx.scale(state.renderScale, state.renderScale);
+                        redrawLayersForSave(drawCtx, pageNum, originalWidth, originalHeight);
+                        tempCtx.drawImage(drawingCanvas, 0, 0);
                     }
                     
                     const a4Width = pdf.internal.pageSize.getWidth();
@@ -538,15 +538,15 @@
             state.isDrawing = true;
             const rect = elements.drawingCanvas.getBoundingClientRect();
             const scale = state.currentScale * state.renderScale;
-            state.lastX = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width);
-            state.lastY = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height);
+            state.lastX = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width) / scale;
+            state.lastY = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height) / scale;
             
             if (state.currentTool === 'text') {
                 const text = prompt('Введите текст:', 'Текст');
                 if (text) {
                     elements.ctx.font = `${elements.fontSize.value * state.renderScale}px ${elements.fontSelect.value}`;
                     elements.ctx.fillStyle = elements.colorPicker.value;
-                    elements.ctx.fillText(text, state.lastX, state.lastY);
+                    elements.ctx.fillText(text, state.lastX * scale, state.lastY * scale);
                     
                     state.layers.push({
                         type: 'text',
@@ -566,8 +566,9 @@
             if (!state.isDrawing) return;
             
             const rect = elements.drawingCanvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width);
-            const y = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height);
+            const scale = state.currentScale * state.renderScale;
+            const x = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width) / scale;
+            const y = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height) / scale;
             
             elements.ctx.strokeStyle = state.currentTool === 'eraser' ? 'white' : elements.colorPicker.value;
             elements.ctx.lineWidth = elements.brushSize.value * state.renderScale;
@@ -577,8 +578,8 @@
                 case 'brush':
                 case 'eraser':
                     elements.ctx.beginPath();
-                    elements.ctx.moveTo(state.lastX, state.lastY);
-                    elements.ctx.lineTo(x, y);
+                    elements.ctx.moveTo(state.lastX * scale, state.lastY * scale);
+                    elements.ctx.lineTo(x * scale, y * scale);
                     elements.ctx.stroke();
                     break;
                 
@@ -586,7 +587,7 @@
                     elements.ctx.clearRect(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
                     redrawLayers();
                     elements.ctx.beginPath();
-                    elements.ctx.rect(state.lastX, state.lastY, x - state.lastX, y - state.lastY);
+                    elements.ctx.rect(state.lastX * scale, state.lastY * scale, (x - state.lastX) * scale, (y - state.lastY) * scale);
                     elements.ctx.stroke();
                     break;
                 
@@ -594,8 +595,8 @@
                     elements.ctx.clearRect(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
                     redrawLayers();
                     elements.ctx.beginPath();
-                    const radius = Math.sqrt(Math.pow(x - state.lastX, 2) + Math.pow(y - state.lastY, 2));
-                    elements.ctx.arc(state.lastX, state.lastY, radius, 0, Math.PI * 2);
+                    const radius = Math.sqrt(Math.pow((x - state.lastX) * scale, 2) + Math.pow((y - state.lastY) * scale, 2));
+                    elements.ctx.arc(state.lastX * scale, state.lastY * scale, radius, 0, Math.PI * 2);
                     elements.ctx.stroke();
                     break;
             }
@@ -608,8 +609,9 @@
             if (!state.isDrawing) return;
             
             const rect = elements.drawingCanvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width);
-            const y = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height);
+            const scale = state.currentScale * state.renderScale;
+            const x = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width) / scale;
+            const y = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height) / scale;
             
             if (['rect', 'circle'].includes(state.currentTool)) {
                 state.layers.push({
@@ -638,13 +640,14 @@
             elements.ctx.clearRect(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
             
             const pageLayers = state.layers.filter(layer => layer.page === state.currentPage);
+            const scale = state.currentScale * state.renderScale;
             pageLayers.forEach(layer => {
                 switch(layer.type) {
                     case 'rect':
                         elements.ctx.strokeStyle = layer.color;
                         elements.ctx.lineWidth = layer.lineWidth;
                         elements.ctx.beginPath();
-                        elements.ctx.rect(layer.x, layer.y, layer.endX - layer.x, layer.endY - layer.y);
+                        elements.ctx.rect(layer.x * scale, layer.y * scale, (layer.endX - layer.x) * scale, (layer.endY - layer.y) * scale);
                         elements.ctx.stroke();
                         break;
                     
@@ -652,21 +655,52 @@
                         elements.ctx.strokeStyle = layer.color;
                         elements.ctx.lineWidth = layer.lineWidth;
                         elements.ctx.beginPath();
-                        const radius = Math.sqrt(Math.pow(layer.endX - layer.x, 2) + Math.pow(layer.endY - layer.y, 2));
-                        elements.ctx.arc(layer.x, layer.y, radius, 0, Math.PI * 2);
+                        const radius = Math.sqrt(Math.pow((layer.endX - layer.x) * scale, 2) + Math.pow((layer.endY - layer.y) * scale, 2));
+                        elements.ctx.arc(layer.x * scale, layer.y * scale, radius, 0, Math.PI * 2);
                         elements.ctx.stroke();
                         break;
                     
                     case 'text':
                         elements.ctx.font = layer.font;
                         elements.ctx.fillStyle = layer.color;
-                        elements.ctx.fillText(layer.text, layer.x, layer.y);
+                        elements.ctx.fillText(layer.text, layer.x * scale, layer.y * scale);
                         break;
                     
                     case 'image':
                         const img = new Image();
                         img.src = layer.data;
                         img.onload = () => elements.ctx.drawImage(img, 0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
+                        break;
+                }
+            });
+        }
+        
+        function redrawLayersForSave(ctx, pageNum, originalWidth, originalHeight) {
+            const pageLayers = state.layers.filter(layer => layer.page === pageNum);
+            const scale = state.renderScale;
+            pageLayers.forEach(layer => {
+                switch(layer.type) {
+                    case 'rect':
+                        ctx.strokeStyle = layer.color;
+                        ctx.lineWidth = layer.lineWidth;
+                        ctx.beginPath();
+                        ctx.rect(layer.x * scale, layer.y * scale, (layer.endX - layer.x) * scale, (layer.endY - layer.y) * scale);
+                        ctx.stroke();
+                        break;
+                    
+                    case 'circle':
+                        ctx.strokeStyle = layer.color;
+                        ctx.lineWidth = layer.lineWidth;
+                        ctx.beginPath();
+                        const radius = Math.sqrt(Math.pow((layer.endX - layer.x) * scale, 2) + Math.pow((layer.endY - layer.y) * scale, 2));
+                        ctx.arc(layer.x * scale, layer.y * scale, radius, 0, Math.PI * 2);
+                        ctx.stroke();
+                        break;
+                    
+                    case 'text':
+                        ctx.font = layer.font;
+                        ctx.fillStyle = layer.color;
+                        ctx.fillText(layer.text, layer.x * scale, layer.y * scale);
                         break;
                 }
             });
