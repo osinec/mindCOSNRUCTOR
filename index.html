@@ -68,8 +68,6 @@
         .canvas-wrapper {
             position: relative;
             margin: 20px;
-            transform-origin: 0 0;
-            transition: transform 0.1s ease;
         }
         #pdf-canvas {
             display: block;
@@ -107,18 +105,7 @@
             width: 80px;
         }
         .zoom-controls {
-            display: flex;
-            gap: 5px;
-            margin-left: auto;
-            align-items: center;
-        }
-        .zoom-btn {
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+            display: none; /* Отключение зума */
         }
         .save-options {
             display: flex;
@@ -171,12 +158,6 @@
             <button id="add-image-btn" class="tool-btn">Добавить изображение</button>
             <input type="file" id="image-input" accept="image/*" style="display: none;">
             
-            <div class="zoom-controls">
-                <button id="zoom-out" class="tool-btn zoom-btn">-</button>
-                <span id="zoom-level">100%</span>
-                <button id="zoom-in" class="tool-btn zoom-btn">+</button>
-            </div>
-            
             <div class="page-controls">
                 <button id="prev-page" class="tool-btn">Пред.</button>
                 <span id="page-num">1</span>
@@ -216,9 +197,6 @@
             brushSize: document.getElementById('brush-size'),
             fontSelect: document.getElementById('font-select'),
             fontSize: document.getElementById('font-size'),
-            zoomInBtn: document.getElementById('zoom-in'),
-            zoomOutBtn: document.getElementById('zoom-out'),
-            zoomLevel: document.getElementById('zoom-level'),
             saveOriginalBtn: document.getElementById('save-original'),
             saveA4Btn: document.getElementById('save-a4'),
             canvasWrapper: document.getElementById('canvas-wrapper'),
@@ -249,7 +227,7 @@
             originalHeight: 0,
             pdfBytes: null,
             renderScale: 2,
-            maxScale: 5.0
+            maxScale: 1.0 // Ограничение масштаба до 1.0
         };
         
         // Инициализация
@@ -282,9 +260,6 @@
             elements.drawingCanvas.addEventListener('mousemove', draw);
             elements.drawingCanvas.addEventListener('mouseup', stopDrawing);
             elements.drawingCanvas.addEventListener('mouseout', stopDrawing);
-            
-            elements.zoomInBtn.addEventListener('click', () => changeZoom(1.2));
-            elements.zoomOutBtn.addEventListener('click', () => changeZoom(0.8));
             
             elements.saveOriginalBtn.addEventListener('click', saveOriginalPDF);
             elements.saveA4Btn.addEventListener('click', saveA4PDF);
@@ -354,7 +329,7 @@
                     containerHeight / state.originalHeight
                 );
                 
-                state.currentScale = state.baseScale;
+                state.currentScale = state.baseScale; // Фиксированный масштаб
                 
                 const renderViewport = page.getViewport({ scale: state.currentScale * state.renderScale });
                 
@@ -378,26 +353,11 @@
                 elements.ctx.clearRect(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
                 redrawLayers();
                 
-                updateZoomLevel();
                 elements.pageNum.textContent = `${pageNum} / ${state.totalPages}`;
             } catch (error) {
                 console.error('Error rendering page:', error);
                 alert('Ошибка отображения страницы');
             }
-        }
-        
-        function updateZoomLevel() {
-            elements.zoomLevel.textContent = `${Math.round(state.currentScale * 100)}%`;
-        }
-        
-        function changeZoom(zoomFactor) {
-            if (!state.pdfDoc) return;
-            
-            const newScale = state.currentScale * zoomFactor;
-            state.currentScale = Math.max(0.1, Math.min(newScale, state.maxScale));
-            elements.canvasWrapper.style.transform = `scale(${state.currentScale / state.baseScale})`;
-            updateZoomLevel();
-            redrawLayers();
         }
         
         function changePage(delta) {
@@ -461,21 +421,12 @@
                     }).promise;
                     
                     if (state.layers.some(layer => layer.page === pageNum)) {
-                        const drawingCanvas = document.createElement('canvas');
-                        drawingCanvas.width = originalWidth * state.renderScale;
-                        drawingCanvas.height = originalHeight * state.renderScale;
-                        const drawCtx = drawingCanvas.getContext('2d');
-                        
-                        // Копируем содержимое drawingCanvas напрямую
-                        const pageLayers = state.layers.filter(layer => layer.page === pageNum);
-                        if (pageLayers.length > 0) {
-                            const img = new Image();
-                            img.onload = () => {
-                                drawCtx.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
-                                tempCtx.drawImage(drawingCanvas, 0, 0);
-                            };
-                            img.src = elements.drawingCanvas.toDataURL('image/png');
-                        }
+                        const drawingData = elements.drawingCanvas.toDataURL('image/png');
+                        const img = new Image();
+                        img.onload = () => {
+                            tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+                        };
+                        img.src = drawingData;
                     }
                     
                     if (pageNum > 1) pdf.addPage([originalWidth, originalHeight], originalWidth > originalHeight ? 'l' : 'p');
@@ -535,17 +486,12 @@
                     }).promise;
                     
                     if (state.layers.some(layer => layer.page === pageNum)) {
-                        const drawingCanvas = document.createElement('canvas');
-                        drawingCanvas.width = originalWidth * state.renderScale;
-                        drawingCanvas.height = originalHeight * state.renderScale;
-                        const drawCtx = drawingCanvas.getContext('2d');
-                        
+                        const drawingData = elements.drawingCanvas.toDataURL('image/png');
                         const img = new Image();
                         img.onload = () => {
-                            drawCtx.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
-                            tempCtx.drawImage(drawingCanvas, 0, 0);
+                            tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
                         };
-                        img.src = elements.drawingCanvas.toDataURL('image/png');
+                        img.src = drawingData;
                     }
                     
                     const a4Width = pdf.internal.pageSize.getWidth();
