@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF редактор с полным сохранением</title>
+    <title>PDF Редактор Онлайн</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -129,11 +129,14 @@
             gap: 5px;
             align-items: center;
         }
+        #image-input {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>PDF редактор с полным сохранением</h1>
+        <h1>PDF Редактор Онлайн</h1>
         
         <div class="toolbar">
             <button id="upload-btn" class="tool-btn">Загрузить PDF</button>
@@ -153,6 +156,7 @@
                 <option value="rect">Прямоугольник</option>
                 <option value="circle">Круг</option>
                 <option value="text">Текст</option>
+                <option value="image">Изображение</option>
             </select>
             
             <select id="font-select">
@@ -163,6 +167,9 @@
             </select>
             
             <input type="number" id="font-size" min="8" max="120" value="16" placeholder="Размер">
+            
+            <button id="add-image-btn" class="tool-btn">Добавить изображение</button>
+            <input type="file" id="image-input" accept="image/*" style="display: none;">
             
             <div class="zoom-controls">
                 <button id="zoom-out" class="tool-btn zoom-btn">-</button>
@@ -218,7 +225,9 @@
             canvasContainer: document.querySelector('.canvas-container'),
             prevPageBtn: document.getElementById('prev-page'),
             nextPageBtn: document.getElementById('next-page'),
-            pageNum: document.getElementById('page-num')
+            pageNum: document.getElementById('page-num'),
+            addImageBtn: document.getElementById('add-image-btn'),
+            imageInput: document.getElementById('image-input')
         };
         
         elements.ctx = elements.drawingCanvas.getContext('2d', { willReadFrequently: true });
@@ -262,7 +271,12 @@
             
             elements.toolSelect.addEventListener('change', () => {
                 state.currentTool = elements.toolSelect.value;
+                if (state.currentTool === 'image') {
+                    elements.imageInput.click();
+                }
             });
+            
+            elements.imageInput.addEventListener('change', handleImageUpload);
             
             elements.drawingCanvas.addEventListener('mousedown', startDrawing);
             elements.drawingCanvas.addEventListener('mousemove', draw);
@@ -383,7 +397,7 @@
             state.currentScale = Math.max(0.1, Math.min(newScale, state.maxScale));
             elements.canvasWrapper.style.transform = `scale(${state.currentScale / state.baseScale})`;
             updateZoomLevel();
-            redrawLayers(); // Перерисовка слоев с учетом нового масштаба
+            redrawLayers();
         }
         
         function changePage(delta) {
@@ -393,6 +407,24 @@
                 state.currentPage = newPage;
                 renderPage(state.currentPage);
             }
+        }
+        
+        async function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const img = new Image();
+            img.onload = () => {
+                const scale = state.currentScale * state.renderScale;
+                elements.ctx.drawImage(img, 0, 0, img.width * scale, img.height * scale);
+                state.layers.push({
+                    type: 'image',
+                    data: elements.drawingCanvas.toDataURL('image/png'),
+                    page: state.currentPage
+                });
+                redrawLayers();
+            };
+            img.src = URL.createObjectURL(file);
         }
         
         async function saveOriginalPDF() {
@@ -434,9 +466,16 @@
                         drawingCanvas.height = originalHeight * state.renderScale;
                         const drawCtx = drawingCanvas.getContext('2d');
                         
-                        // Рисуем слои на временном холсте
-                        redrawLayersForSave(drawCtx, pageNum, originalWidth, originalHeight);
-                        tempCtx.drawImage(drawingCanvas, 0, 0);
+                        // Копируем содержимое drawingCanvas напрямую
+                        const pageLayers = state.layers.filter(layer => layer.page === pageNum);
+                        if (pageLayers.length > 0) {
+                            const img = new Image();
+                            img.onload = () => {
+                                drawCtx.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
+                                tempCtx.drawImage(drawingCanvas, 0, 0);
+                            };
+                            img.src = elements.drawingCanvas.toDataURL('image/png');
+                        }
                     }
                     
                     if (pageNum > 1) pdf.addPage([originalWidth, originalHeight], originalWidth > originalHeight ? 'l' : 'p');
@@ -501,8 +540,12 @@
                         drawingCanvas.height = originalHeight * state.renderScale;
                         const drawCtx = drawingCanvas.getContext('2d');
                         
-                        redrawLayersForSave(drawCtx, pageNum, originalWidth, originalHeight);
-                        tempCtx.drawImage(drawingCanvas, 0, 0);
+                        const img = new Image();
+                        img.onload = () => {
+                            drawCtx.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
+                            tempCtx.drawImage(drawingCanvas, 0, 0);
+                        };
+                        img.src = elements.drawingCanvas.toDataURL('image/png');
                     }
                     
                     const a4Width = pdf.internal.pageSize.getWidth();
@@ -564,7 +607,7 @@
         }
         
         function draw(e) {
-            if (!state.isDrawing) return;
+            if (!state.isDrawing || state.currentTool === 'text') return;
             
             const rect = elements.drawingCanvas.getBoundingClientRect();
             const scale = state.currentScale * state.renderScale;
@@ -572,7 +615,7 @@
             const y = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height) / scale;
             
             elements.ctx.strokeStyle = state.currentTool === 'eraser' ? 'white' : elements.colorPicker.value;
-            elements.ctx.lineWidth = elements.brushSize.value;
+            elements.ctx.lineWidth = elements.brushSize.value * scale;
             elements.ctx.lineCap = 'round';
             
             switch(state.currentTool) {
@@ -607,7 +650,7 @@
         }
         
         function stopDrawing(e) {
-            if (!state.isDrawing) return;
+            if (!state.isDrawing || state.currentTool === 'text') return;
             
             const rect = elements.drawingCanvas.getBoundingClientRect();
             const scale = state.currentScale * state.renderScale;
@@ -622,13 +665,13 @@
                     endX: x,
                     endY: y,
                     color: elements.colorPicker.value,
-                    lineWidth: elements.brushSize.value,
+                    lineWidth: elements.brushSize.value * scale,
                     page: state.currentPage
                 });
             } else if (state.currentTool === 'brush' || state.currentTool === 'eraser') {
                 state.layers.push({
                     type: 'image',
-                    data: elements.drawingCanvas.toDataURL('image/png', 1.0),
+                    data: elements.drawingCanvas.toDataURL('image/png'),
                     page: state.currentPage
                 });
             }
@@ -646,7 +689,7 @@
                 switch(layer.type) {
                     case 'rect':
                         elements.ctx.strokeStyle = layer.color;
-                        elements.ctx.lineWidth = layer.lineWidth * scale;
+                        elements.ctx.lineWidth = layer.lineWidth;
                         elements.ctx.beginPath();
                         elements.ctx.rect(layer.x * scale, layer.y * scale, (layer.endX - layer.x) * scale, (layer.endY - layer.y) * scale);
                         elements.ctx.stroke();
@@ -654,7 +697,7 @@
                     
                     case 'circle':
                         elements.ctx.strokeStyle = layer.color;
-                        elements.ctx.lineWidth = layer.lineWidth * scale;
+                        elements.ctx.lineWidth = layer.lineWidth;
                         elements.ctx.beginPath();
                         const radius = Math.sqrt(Math.pow((layer.endX - layer.x) * scale, 2) + Math.pow((layer.endY - layer.y) * scale, 2));
                         elements.ctx.arc(layer.x * scale, layer.y * scale, radius, 0, Math.PI * 2);
@@ -669,48 +712,8 @@
                     
                     case 'image':
                         const img = new Image();
-                        img.src = layer.data;
                         img.onload = () => elements.ctx.drawImage(img, 0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
-                        break;
-                }
-            });
-        }
-        
-        function redrawLayersForSave(ctx, pageNum, originalWidth, originalHeight) {
-            const pageLayers = state.layers.filter(layer => layer.page === pageNum);
-            pageLayers.forEach(layer => {
-                const scale = state.renderScale;
-                switch(layer.type) {
-                    case 'rect':
-                        ctx.strokeStyle = layer.color;
-                        ctx.lineWidth = layer.lineWidth * scale;
-                        ctx.beginPath();
-                        ctx.rect(layer.x * scale, layer.y * scale, (layer.endX - layer.x) * scale, (layer.endY - layer.y) * scale);
-                        ctx.stroke();
-                        break;
-                    
-                    case 'circle':
-                        ctx.strokeStyle = layer.color;
-                        ctx.lineWidth = layer.lineWidth * scale;
-                        ctx.beginPath();
-                        const radius = Math.sqrt(Math.pow((layer.endX - layer.x) * scale, 2) + Math.pow((layer.endY - layer.y) * scale, 2));
-                        ctx.arc(layer.x * scale, layer.y * scale, radius, 0, Math.PI * 2);
-                        ctx.stroke();
-                        break;
-                    
-                    case 'text':
-                        ctx.font = layer.font;
-                        ctx.fillStyle = layer.color;
-                        ctx.fillText(layer.text, layer.x * scale, layer.y * scale);
-                        break;
-                    
-                    case 'image':
-                        const img = new Image();
                         img.src = layer.data;
-                        img.onload = () => {
-                            ctx.drawImage(img, 0, 0, originalWidth * scale, originalHeight * scale);
-                            console.log(`Image layer drawn for page ${pageNum}`);
-                        };
                         break;
                 }
             });
