@@ -548,7 +548,7 @@
             }
             
             // Формируем финальный текст по заданной структуре
-            const output = `Я хочу, чтобы вы поняли, ${inputData.threeWords}. Если вы этого не поймете, ${inputData.importance}. ${inputData.metaphor}. Поэтому, если вам важно ${inputData.goal}, поймите, что нужно ${inputData.goal2}.`;
+            const output = `Я хочу, чтобы вы поняли, ${inputData.threeWords}. Если вы этого не поймете, ${inputData.importance}. ${inputData.metaphor}. Поэтому, если вам важно ${inputData.goal}, поймите, ${inputData.goal2}.`;
             
             document.getElementById('output').innerText = output;
             document.getElementById('result').style.display = 'block';
@@ -571,8 +571,6 @@
             document.getElementById('progressBar').style.width = '100%';
             document.querySelector('#step7-indicator').classList.add('completed');
         });
-        // Кнопка "Сгенерировать другой вариант"
-        document.getElementById('regenerateVariantBtn').addEventListener('click', generateResult);
         // Кнопка "Изменить данные"
         document.getElementById('regenerateBtn').addEventListener('click', function() {
             document.getElementById('result').style.display = 'none';
