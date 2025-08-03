@@ -483,45 +483,6 @@
         </div>
     </div>
     <script>
-        // Массивы для рандомных фраз
-        // Удален массив introPhrases
-        const importancePhrases = [
-            "Это важно, потому что",
-            "Важность этого заключается в том, что",
-            "Это имеет значение, так как",
-            "Причина важности в следующем",
-            "Зачем это нужно? Потому что",
-            "Это критично важно, ведь",
-            "Смысл в том, что",
-            "Важно это потому",
-            "Потому что без этого",
-            "Это необходимо, поскольку",
-            "Реальная важность здесь в точ",
-            "Если этого не понять, то",
-            "Без этого невозможно",
-            "Если вы этого не поймете",
-        ];
-        // Новый массив для фраз перед действием
-        const actionIntroPhrases = [
-            "Поэтому",
-            "Именно поэтому",
-            "Следовательно,",
-            "Таким образом,",
-            "В итоге",
-            "Как результат,",
-            "В конечном счете,",
-            "Отсюда следует, что",
-            "С учетом всего выше сказанного,",
-            "Исходя из этого,",
-            "В связи с этим,",
-            "Учитывая это,",
-            "Из этого вытекает, что",
-            "Это означает, что",
-            "Следовательно, необходимо",
-            "Поэтому важно",
-            "Именно поэтому стоит",
-            "Отсюда вытекает необходимость",
-        ];
         // Текущий активный шаг
         let currentStep = 1;
         // Храним введенные данные
@@ -541,11 +502,6 @@
         document.getElementById('importance').addEventListener('input', function() {
             document.getElementById('importanceCount').textContent = this.value.length;
         });
-        // Функция для получения случайного элемента из массива
-        function getRandomElement(array) {
-            const randomIndex = Math.floor(Math.random() * array.length);
-            return array[randomIndex];
-        }
         // Навигация по шагам
         function nextStep(step) {
             if (step > 7) return;
@@ -590,12 +546,10 @@
                 alert('Пожалуйста, заполните все поля перед генерацией');
                 return;
             }
-            // Получаем случайные фразы
-            // Удалена строка: const randomIntro = getRandomElement(introPhrases);
-            const randomImportancePhrase = getRandomElement(importancePhrases);
-            const randomActionIntro = getRandomElement(actionIntroPhrases); // Получаем случайную фразу перед действием
-            // Используем фиксированную фразу "Я хочу, чтобы вы поняли"
-            const output = `Я хочу, чтобы вы поняли, ${inputData.threeWords}. ${randomImportancePhrase} ${inputData.importance}. ${inputData.metaphor}. ${randomActionIntro} если вам важно ${inputData.goal} - ${inputData.goal2}.`;
+            
+            // Формируем финальный текст по заданной структуре
+            const output = `Я хочу, чтобы вы поняли, ${inputData.threeWords}. Если вы этого не поймете, ${inputData.importance}. ${inputData.metaphor}. Поэтому, если вам важно ${inputData.goal}, поймите, что нужно ${inputData.goal2}.`;
+            
             document.getElementById('output').innerText = output;
             document.getElementById('result').style.display = 'block';
             // Прокрутка к результату
