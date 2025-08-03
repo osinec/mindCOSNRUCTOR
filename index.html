@@ -16,6 +16,7 @@
             --dark: #212529;
             --success: #4bb543;
             --warning: #f8961e;
+            --fixed-phrase: #2a9d8f; /* Зеленый цвет для фиксированных фраз */
         }
         * {
             box-sizing: border-box;
@@ -174,6 +175,24 @@
             white-space: pre-line;
             line-height: 1.8;
             margin-bottom: 1.5rem;
+        }
+        /* Новый стиль для фиксированных фраз */
+        .fixed-phrase {
+            color: var(--fixed-phrase);
+            font-weight: 600;
+        }
+        /* Новый стиль для пояснительной надписи */
+        .explanation {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e8f4f3;
+            border-radius: 8px;
+            border-left: 4px solid var(--fixed-phrase);
+            font-size: 0.9rem;
+            color: #333;
+        }
+        .explanation strong {
+            color: var(--fixed-phrase);
         }
         .progress-container {
             width: 100%;
@@ -407,7 +426,7 @@
                             </span>
                         </label>
                         <div class="input-wrapper">
-                            <input type="text" id="goal" placeholder="Пример: Больше продавать, больше учеников привлекать к занятиям, лучше управлять...">
+                            <input type="text" id="goal" placeholder="Пример: Больше продавать, больше учеников, лучше управлять...">
                         </div>
                     </div>
                     <div class="flex-buttons">
@@ -425,7 +444,7 @@
                             </span>
                         </label>
                         <div class="input-wrapper">
-                            <textarea id="importance" placeholder="Пример: Без этого дальше не двинуться, если не донести пользу и интерес, остальное бесполезно.."></textarea>
+                            <textarea id="importance" placeholder="Пример: Если вы этого не поймете,то..."></textarea>
                         </div>
                         <div class="char-counter"><span id="importanceCount">0</span>/300</div>
                     </div>
@@ -462,7 +481,7 @@
                             </span>
                         </label>
                         <div class="input-wrapper">
-                            <input type="text" id="goal2" placeholder="Пример: Поймите, что важно рассказывать о науке">
+                            <input type="text" id="goal2" placeholder="Пример: Поймите, что...">
                         </div>
                     </div>
                     <div class="flex-buttons">
@@ -474,6 +493,10 @@
             <div class="result-container" id="result">
                 <h2 class="result-title">Изящная мысль</h2>
                 <div class="result-content" id="output"></div>
+                <!-- Добавлена пояснительная надпись -->
+                <div class="explanation">
+                    <strong>Фразы, выделенные зеленым цветом,</strong> являются фиксированными. Вы можете скопировать результат и заменить их на любые другие по вашему усмотрению.
+                </div>
                 <div class="flex-buttons">
                     <button class="btn btn-secondary" id="regenerateVariantBtn">Сгенерировать другой вариант</button>
                     <button class="btn btn-warning" id="regenerateBtn">Изменить данные</button>
@@ -547,10 +570,10 @@
                 return;
             }
             
-            // Формируем финальный текст по заданной структуре
-            const output = `Я хочу, чтобы вы поняли, ${inputData.threeWords}. Если вы этого не поймете, ${inputData.importance}. ${inputData.metaphor}. Поэтому, если вам важно ${inputData.goal}, поймите, ${inputData.goal2}.`;
+            // Формируем финальный текст по заданной структуре с выделением фиксированных фраз
+            const output = `<span class="fixed-phrase">Я хочу, чтобы вы поняли,</span> ${inputData.threeWords}. <span class="fixed-phrase">Если вы этого не поймете,</span> ${inputData.importance}. ${inputData.metaphor}. <span class="fixed-phrase">Поэтому, если вам важно</span> ${inputData.goal}, <span class="fixed-phrase">поймите,</span> ${inputData.goal2}.`;
             
-            document.getElementById('output').innerText = output;
+            document.getElementById('output').innerHTML = output;
             document.getElementById('result').style.display = 'block';
             // Прокрутка к результату
             document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
@@ -579,6 +602,7 @@
         });
         // Копирование результата
         document.getElementById('copyBtn').addEventListener('click', function() {
+            // Получаем текст без HTML тегов для копирования
             const outputText = document.getElementById('output').innerText;
             navigator.clipboard.writeText(outputText).then(function() {
                 const originalText = this.innerText;
