@@ -3,670 +3,655 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Редактор Онлайн</title>
+    <title>Мастер упаковки мыслей</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4bb543;
+            --warning: #f8961e;
+        }
+        
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin: 0 0 15px 0;
-            font-size: 1.5rem;
-        }
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #eee;
-            border-radius: 5px;
-            align-items: center;
-        }
-        .tool-btn {
-            padding: 8px 12px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            white-space: nowrap;
-            font-size: 0.9rem;
-        }
-        .tool-btn:hover {
-            background: #45a049;
-        }
-        .canvas-container {
-            flex-grow: 1;
-            overflow: auto;
-            border: 1px solid #ddd;
-            background: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        .canvas-wrapper {
-            position: relative;
-            margin: 20px;
-        }
-        #pdf-canvas {
-            display: block;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-        }
-        #drawing-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            cursor: crosshair;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-        }
-        .color-picker {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        input[type="color"] {
-            width: 30px;
-            height: 30px;
-            border: none;
-            cursor: pointer;
             padding: 0;
         }
-        select, input[type="number"] {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            max-width: 100px;
-            font-size: 0.9rem;
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem;
         }
-        input[type="range"] {
-            width: 80px;
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
-        .zoom-controls {
-            display: none; /* Отключение зума */
+        
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
         }
-        .save-options {
-            display: flex;
-            gap: 5px;
+        
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
         }
-        .page-controls {
-            display: flex;
-            gap: 5px;
-            align-items: center;
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
         }
-        #image-input {
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .form-step {
+            margin-bottom: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .question {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+        
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 0.5rem;
+        }
+        
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .char-counter {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: right;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .btn-accent {
+            background: var(--accent);
+        }
+        
+        .btn-accent:hover {
+            background: #3aa8d8;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-success:hover {
+            background: #3a9a34;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+        }
+        
+        .btn-warning:hover {
+            background: #e07d0e;
+        }
+        
+        .result-container {
             display: none;
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+        }
+        
+        .result-title {
+            font-family: 'Playfair Display', serif;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        
+        .result-content {
+            white-space: pre-line;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            width: 14.28%;
+            transition: width 0.4s ease;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        
+        .step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .step-number {
+            width: 36px;
+            height: 36px;
+            background: #e9ecef;
+            color: #6c757d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active .step-number {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: var(--success);
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .step.active .step-label {
+            color: var(--dark);
+            font-weight: 600;
+        }
+        
+        .step.completed .step-label {
+            color: var(--dark);
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 0.5rem;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .flex-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                border-radius: 12px;
+            }
+            
+            header {
+                padding: 1.5rem 1rem;
+            }
+            
+            .content {
+                padding: 1.5rem;
+            }
+            
+            .step-label {
+                display: none;
+            }
+            
+            .btn {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>PDF Редактор Онлайн</h1>
+        <header>
+            <h1>Мастер упаковки мыслей</h1>
+            <p class="subtitle">Превратите ваши идеи в четкие, запоминающиеся формулировки с помощью нашей пошаговой системы</p>
+        </header>
         
-        <div class="toolbar">
-            <button id="upload-btn" class="tool-btn">Загрузить PDF</button>
-            <input type="file" id="pdf-input" accept=".pdf" style="display: none;">
-            
-            <div class="color-picker">
-                <label for="color">Цвет:</label>
-                <input type="color" id="color" value="#000000">
+        <div class="content">
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
             </div>
             
-            <label for="brush-size">Кисть:</label>
-            <input type="range" id="brush-size" min="1" max="30" value="5">
-            
-            <select id="tool-select">
-                <option value="brush">Кисть</option>
-                <option value="eraser">Ластик</option>
-                <option value="rect">Прямоугольник</option>
-                <option value="circle">Круг</option>
-                <option value="text">Текст</option>
-                <option value="image">Изображение</option>
-            </select>
-            
-            <select id="font-select">
-                <option value="Arial">Arial</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Courier New">Courier New</option>
-                <option value="Georgia">Georgia</option>
-            </select>
-            
-            <input type="number" id="font-size" min="8" max="120" value="16" placeholder="Размер">
-            
-            <button id="add-image-btn" class="tool-btn">Добавить изображение</button>
-            <input type="file" id="image-input" accept="image/*" style="display: none;">
-            
-            <div class="page-controls">
-                <button id="prev-page" class="tool-btn">Пред.</button>
-                <span id="page-num">1</span>
-                <button id="next-page" class="tool-btn">След.</button>
+            <div class="step-indicator">
+                <div class="step active" id="step1-indicator" onclick="goToStep(1)">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Суть</div>
+                </div>
+                <div class="step" id="step2-indicator" onclick="goToStep(2)">
+                    <div class="step-number">2</div>
+                    <div class="step-label">3 слова</div>
+                </div>
+                <div class="step" id="step3-indicator" onclick="goToStep(3)">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Аудитория</div>
+                </div>
+                <div class="step" id="step4-indicator" onclick="goToStep(4)">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Цель</div>
+                </div>
+                <div class="step" id="step5-indicator" onclick="goToStep(5)">
+                    <div class="step-number">5</div>
+                    <div class="step-label">Важность</div>
+                </div>
+                <div class="step" id="step6-indicator" onclick="goToStep(6)">
+                    <div class="step-number">6</div>
+                    <div class="step-label">Метафора</div>
+                </div>
+                <div class="step" id="step7-indicator" onclick="goToStep(7)">
+                    <div class="step-number">7</div>
+                    <div class="step-label">Цель 2</div>
+                </div>
             </div>
             
-            <div class="save-options">
-                <button id="save-original" class="tool-btn">Сохранить оригинал</button>
-                <button id="save-a4" class="tool-btn">Сохранить A4</button>
-            </div>
-        </div>
-        
-        <div class="canvas-container">
-            <div class="canvas-wrapper" id="canvas-wrapper">
-                <canvas id="pdf-canvas"></canvas>
-                <canvas id="drawing-canvas"></canvas>
+            <form id="thoughtForm">
+                <div class="form-step" id="step1-content">
+                    <div class="question">
+                        <label for="coreMessage">
+                            Что вы хотите донести?
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Я хочу донести, что наука очень полезна и интересна. С помощью нее возможно многое</span>
+                            </span>
+                        </label>
+                        <div class="input-wrapper">
+                            <textarea id="coreMessage" placeholder="Я хочу донести, что наука очень полезна и интересна. С помощью нее возможно многое"></textarea>
+                        </div>
+                        <div class="char-counter"><span id="coreMessageCount">0</span>/200</div>
+                    </div>
+                    <button type="button" class="btn btn-block" onclick="nextStep(2)">Далее</button>
+                </div>
+                
+                <div class="form-step" id="step2-content" style="display:none">
+                    <div class="question">
+                        <label for="threeWords">
+                            Упакуйте суть в 3 ключевых слова:
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">наука полезна и интересна (Запоминающееся и короткое)</span>
+                            </span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="text" id="threeWords" placeholder="наука полезна и интересна">
+                        </div>
+                    </div>
+                    <div class="flex-buttons">
+                        <button type="button" class="btn" onclick="prevStep(1)">Назад</button>
+                        <button type="button" class="btn btn-accent" onclick="nextStep(3)">Далее</button>
+                    </div>
+                </div>
+                
+                <div class="form-step" id="step3-content" style="display:none">
+                    <div class="question">
+                        <label for="audience">
+                            Кто твоя аудитория?
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Учителя</span>
+                            </span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="text" id="audience" placeholder="Учителя">
+                        </div>
+                    </div>
+                    <div class="flex-buttons">
+                        <button type="button" class="btn" onclick="prevStep(2)">Назад</button>
+                        <button type="button" class="btn btn-accent" onclick="nextStep(4)">Далее</button>
+                    </div>
+                </div>
+                
+                <div class="form-step" id="step4-content" style="display:none">
+                    <div class="question">
+                        <label for="goal">
+                            Какова цель?
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Это позволит больше продавать</span>
+                            </span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="text" id="goal" placeholder="Это позволит больше продавать">
+                        </div>
+                    </div>
+                    <div class="flex-buttons">
+                        <button type="button" class="btn" onclick="prevStep(3)">Назад</button>
+                        <button type="button" class="btn btn-accent" onclick="nextStep(5)">Далее</button>
+                    </div>
+                </div>
+                
+                <div class="form-step" id="step5-content" style="display:none">
+                    <div class="question">
+                        <label for="importance">
+                            Почему это важно?
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Это как глоток кофе с утра, который тебя ставит на ноги</span>
+                            </span>
+                        </label>
+                        <div class="input-wrapper">
+                            <textarea id="importance" placeholder="Это как глоток кофе с утра, который тебя ставит на ноги"></textarea>
+                        </div>
+                        <div class="char-counter"><span id="importanceCount">0</span>/300</div>
+                    </div>
+                    <div class="flex-buttons">
+                        <button type="button" class="btn" onclick="prevStep(4)">Назад</button>
+                        <button type="button" class="btn btn-accent" onclick="nextStep(6)">Далее</button>
+                    </div>
+                </div>
+                
+                <div class="form-step" id="step6-content" style="display:none">
+                    <div class="question">
+                        <label for="metaphor">
+                            Метафора или аналогия:
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Это как глоток кофе с утра, который тебя ставит на ноги</span>
+                            </span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="text" id="metaphor" placeholder="Это как глоток кофе с утра, который тебя ставит на ноги">
+                        </div>
+                    </div>
+                    <div class="flex-buttons">
+                        <button type="button" class="btn" onclick="prevStep(5)">Назад</button>
+                        <button type="button" class="btn btn-accent" onclick="nextStep(7)">Далее</button>
+                    </div>
+                </div>
+                
+                <div class="form-step" id="step7-content" style="display:none">
+                    <div class="question">
+                        <label for="goal2">
+                            Какова цель 2?
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">если ваша цель продавать больше, прислушайтесь</span>
+                            </span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="text" id="goal2" placeholder="если ваша цель продавать больше, прислушайтесь">
+                        </div>
+                    </div>
+                    <div class="flex-buttons">
+                        <button type="button" class="btn" onclick="prevStep(6)">Назад</button>
+                        <button type="button" class="btn btn-accent" id="generateBtn">Завершить</button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="result-container" id="result">
+                <h2 class="result-title">Ваша упакованная мысль</h2>
+                <div class="result-content" id="output"></div>
+                <div class="flex-buttons">
+                    <button class="btn btn-warning" id="regenerateBtn">Изменить данные</button>
+                    <button class="btn btn-success" id="copyBtn">Копировать результат</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // Инициализация PDF.js
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
-        const { jsPDF } = window.jspdf;
+        // Текущий активный шаг
+        let currentStep = 1;
         
-        // Элементы страницы
-        const elements = {
-            pdfInput: document.getElementById('pdf-input'),
-            uploadBtn: document.getElementById('upload-btn'),
-            pdfCanvas: document.getElementById('pdf-canvas'),
-            drawingCanvas: document.getElementById('drawing-canvas'),
-            ctx: null,
-            toolSelect: document.getElementById('tool-select'),
-            colorPicker: document.getElementById('color'),
-            brushSize: document.getElementById('brush-size'),
-            fontSelect: document.getElementById('font-select'),
-            fontSize: document.getElementById('font-size'),
-            saveOriginalBtn: document.getElementById('save-original'),
-            saveA4Btn: document.getElementById('save-a4'),
-            canvasWrapper: document.getElementById('canvas-wrapper'),
-            canvasContainer: document.querySelector('.canvas-container'),
-            prevPageBtn: document.getElementById('prev-page'),
-            nextPageBtn: document.getElementById('next-page'),
-            pageNum: document.getElementById('page-num'),
-            addImageBtn: document.getElementById('add-image-btn'),
-            imageInput: document.getElementById('image-input')
-        };
+        // Обработчики событий для подсчета символов
+        document.getElementById('coreMessage').addEventListener('input', function() {
+            document.getElementById('coreMessageCount').textContent = this.value.length;
+        });
         
-        elements.ctx = elements.drawingCanvas.getContext('2d', { willReadFrequently: true });
+        document.getElementById('importance').addEventListener('input', function() {
+            document.getElementById('importanceCount').textContent = this.value.length;
+        });
         
-        // Переменные состояния
-        const state = {
-            currentTool: 'brush',
-            isDrawing: false,
-            lastX: 0,
-            lastY: 0,
-            layers: [],
-            pdfDoc: null,
-            currentPage: 1,
-            totalPages: 1,
-            currentScale: 1.0,
-            baseScale: 1.0,
-            viewport: null,
-            originalWidth: 0,
-            originalHeight: 0,
-            pdfBytes: null,
-            renderScale: 2,
-            maxScale: 1.0 // Ограничение масштаба до 1.0
-        };
-        
-        // Инициализация
-        function init() {
-            setupEventListeners();
+        // Навигация по шагам
+        function nextStep(step) {
+            if (step > 7) return;
+            currentStep = step;
+            updateFormSteps();
         }
         
-        function setupEventListeners() {
-            elements.uploadBtn.addEventListener('click', function() {
-                elements.pdfInput.click();
+        function prevStep(step) {
+            if (step < 1) return;
+            currentStep = step;
+            updateFormSteps();
+        }
+        
+        function goToStep(step) {
+            if (step < 1 || step > 7) return;
+            currentStep = step;
+            updateFormSteps();
+        }
+        
+        function updateFormSteps() {
+            // Скрыть все шаги
+            document.querySelectorAll('.form-step').forEach(step => {
+                step.style.display = 'none';
             });
             
-            elements.pdfInput.addEventListener('change', function(e) {
-                handleFileUpload(e).catch(error => {
-                    console.error('Error handling file upload:', error);
-                    alert('Ошибка при загрузке файла');
-                });
-            });
+            // Показать текущий шаг
+            document.querySelector(`#step${currentStep}-content`).style.display = 'block';
             
-            elements.toolSelect.addEventListener('change', () => {
-                state.currentTool = elements.toolSelect.value;
-                if (state.currentTool === 'image') {
-                    elements.imageInput.click();
+            // Обновить индикаторы шагов
+            document.querySelectorAll('.step').forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                
+                if (index + 1 === currentStep) {
+                    step.classList.add('active');
+                } else if (index + 1 < currentStep) {
+                    step.classList.add('completed');
                 }
             });
             
-            elements.imageInput.addEventListener('change', handleImageUpload);
+            // Обновить прогресс-бар
+            document.getElementById('progressBar').style.width = `${(currentStep-1)*14.28}%`;
             
-            elements.drawingCanvas.addEventListener('mousedown', startDrawing);
-            elements.drawingCanvas.addEventListener('mousemove', draw);
-            elements.drawingCanvas.addEventListener('mouseup', stopDrawing);
-            elements.drawingCanvas.addEventListener('mouseout', stopDrawing);
-            
-            elements.saveOriginalBtn.addEventListener('click', saveOriginalPDF);
-            elements.saveA4Btn.addEventListener('click', saveA4PDF);
-            
-            elements.prevPageBtn.addEventListener('click', () => changePage(-1));
-            elements.nextPageBtn.addEventListener('click', () => changePage(1));
+            // Прокрутить к верху формы
+            document.querySelector('.content').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         
-        async function handleFileUpload(e) {
-            const file = e.target.files[0];
-            if (!file) {
-                console.log('Файл не выбран');
+        // Генерация результата
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            const coreMessage = document.getElementById('coreMessage').value;
+            const threeWords = document.getElementById('threeWords').value;
+            const audience = document.getElementById('audience').value;
+            const goal = document.getElementById('goal').value;
+            const importance = document.getElementById('importance').value;
+            const metaphor = document.getElementById('metaphor').value;
+            const goal2 = document.getElementById('goal2').value;
+            
+            if (!coreMessage || !threeWords || !audience || !goal || !importance || !metaphor || !goal2) {
+                alert('Пожалуйста, заполните все поля перед генерацией');
                 return;
             }
             
-            if (!file.name.toLowerCase().endsWith('.pdf')) {
-                alert('Пожалуйста, выберите файл в формате PDF');
-                return;
-            }
+            const output = `🔷 Я хочу чтобы вы поняли: ${threeWords}\n\n` +
+                           `🔷 Ключевая мысль: ${coreMessage}\n\n` +
+                           `🔷 Для кого: ${audience}\n\n` +
+                           `🔷 Цель: ${goal}\n\n` +
+                           `🔷 Почему это важно: ${importance}\n\n` +
+                           `🔷 Метафора/аналогия: ${metaphor}\n\n` +
+                           `🔷 Цель 2: ${goal2}\n\n` +
+                           `🔷 Повтор ключевой мысли: ${coreMessage}`;
             
-            return new Promise((resolve, reject) => {
-                const fileReader = new FileReader();
-                
-                fileReader.onload = async function() {
-                    try {
-                        state.pdfBytes = new Uint8Array(this.result);
-                        state.pdfDoc = await pdfjsLib.getDocument({
-                            data: state.pdfBytes,
-                            cMapUrl: pdfjsLib.cMapUrl,
-                            cMapPacked: pdfjsLib.cMapPacked
-                        }).promise;
-                        state.totalPages = state.pdfDoc.numPages;
-                        elements.pageNum.textContent = `${state.currentPage} / ${state.totalPages}`;
-                        await renderPage(state.currentPage);
-                        resolve();
-                    } catch (error) {
-                        console.error('Error loading PDF:', error);
-                        alert('Ошибка загрузки PDF файла');
-                        reject(error);
-                    }
-                };
-                
-                fileReader.onerror = function(error) {
-                    console.error('FileReader error:', error);
-                    alert('Ошибка чтения файла');
-                    reject(error);
-                };
-                
-                fileReader.readAsArrayBuffer(file);
+            document.getElementById('output').innerText = output;
+            document.getElementById('result').style.display = 'block';
+            
+            // Прокрутка к результату
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+            
+            // Завершаем прогресс
+            document.getElementById('progressBar').style.width = '100%';
+            document.querySelector('#step7-indicator').classList.add('completed');
+        });
+        
+        // Кнопка "Изменить данные"
+        document.getElementById('regenerateBtn').addEventListener('click', function() {
+            document.getElementById('result').style.display = 'none';
+            currentStep = 1;
+            updateFormSteps();
+        });
+        
+        // Копирование результата
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            const outputText = document.getElementById('output').innerText;
+            navigator.clipboard.writeText(outputText).then(function() {
+                const originalText = this.innerText;
+                this.innerText = 'Скопировано!';
+                setTimeout(() => {
+                    this.innerText = originalText;
+                }, 2000);
+            }.bind(this), function() {
+                alert('Не удалось скопировать текст. Попробуйте выделить и скопировать вручную.');
             });
-        }
+        });
         
-        async function renderPage(pageNum) {
-            if (!state.pdfDoc) return;
-            
-            try {
-                const page = await state.pdfDoc.getPage(pageNum);
-                state.viewport = page.getViewport({ scale: 1.0 });
-                state.originalWidth = state.viewport.width;
-                state.originalHeight = state.viewport.height;
-                
-                const containerWidth = elements.canvasContainer.clientWidth - 40;
-                const containerHeight = elements.canvasContainer.clientHeight - 40;
-                
-                state.baseScale = Math.min(
-                    containerWidth / state.originalWidth,
-                    containerHeight / state.originalHeight
-                );
-                
-                state.currentScale = state.baseScale; // Фиксированный масштаб
-                
-                const renderViewport = page.getViewport({ scale: state.currentScale * state.renderScale });
-                
-                elements.pdfCanvas.width = renderViewport.width;
-                elements.pdfCanvas.height = renderViewport.height;
-                elements.drawingCanvas.width = renderViewport.width;
-                elements.drawingCanvas.height = renderViewport.height;
-                
-                elements.pdfCanvas.style.width = (renderViewport.width / state.renderScale) + 'px';
-                elements.pdfCanvas.style.height = (renderViewport.height / state.renderScale) + 'px';
-                elements.drawingCanvas.style.width = (renderViewport.width / state.renderScale) + 'px';
-                elements.drawingCanvas.style.height = (renderViewport.height / state.renderScale) + 'px';
-                
-                await page.render({
-                    canvasContext: elements.pdfCanvas.getContext('2d'),
-                    viewport: renderViewport,
-                    intent: 'print'
-                }).promise;
-                
-                state.layers = state.layers.filter(layer => layer.page === pageNum) || [];
-                elements.ctx.clearRect(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
-                redrawLayers();
-                
-                elements.pageNum.textContent = `${pageNum} / ${state.totalPages}`;
-            } catch (error) {
-                console.error('Error rendering page:', error);
-                alert('Ошибка отображения страницы');
-            }
-        }
-        
-        function changePage(delta) {
-            if (!state.pdfDoc) return;
-            const newPage = state.currentPage + delta;
-            if (newPage >= 1 && newPage <= state.totalPages) {
-                state.currentPage = newPage;
-                renderPage(state.currentPage);
-            }
-        }
-        
-        async function handleImageUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const img = new Image();
-            img.onload = () => {
-                const scale = state.currentScale * state.renderScale;
-                elements.ctx.drawImage(img, 0, 0, img.width * scale, img.height * scale);
-                state.layers.push({
-                    type: 'image',
-                    data: elements.drawingCanvas.toDataURL('image/png'),
-                    page: state.currentPage
-                });
-                redrawLayers();
-            };
-            img.src = URL.createObjectURL(file);
-        }
-        
-        async function saveOriginalPDF() {
-            if (!state.pdfDoc || !state.pdfBytes) {
-                alert('Сначала загрузите PDF файл');
-                return;
-            }
-            
-            try {
-                console.log('Starting saveOriginalPDF');
-                const pdf = new jsPDF({
-                    unit: 'pt',
-                    compress: false
-                });
-                
-                for (let pageNum = 1; pageNum <= state.totalPages; pageNum++) {
-                    const page = await state.pdfDoc.getPage(pageNum);
-                    const viewport = page.getViewport({ scale: 1.0 });
-                    const originalWidth = viewport.width;
-                    const originalHeight = viewport.height;
-                    
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = originalWidth * state.renderScale;
-                    tempCanvas.height = originalHeight * state.renderScale;
-                    const tempCtx = tempCanvas.getContext('2d');
-                    
-                    tempCtx.fillStyle = 'white';
-                    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                    
-                    await page.render({
-                        canvasContext: tempCtx,
-                        viewport: page.getViewport({ scale: state.renderScale }),
-                        intent: 'print'
-                    }).promise;
-                    
-                    if (state.layers.some(layer => layer.page === pageNum)) {
-                        const drawingData = elements.drawingCanvas.toDataURL('image/png');
-                        const img = new Image();
-                        img.onload = () => {
-                            tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-                        };
-                        img.src = drawingData;
-                    }
-                    
-                    if (pageNum > 1) pdf.addPage([originalWidth, originalHeight], originalWidth > originalHeight ? 'l' : 'p');
-                    pdf.addImage(
-                        tempCanvas.toDataURL('image/png', 1.0),
-                        'PNG',
-                        0,
-                        0,
-                        originalWidth,
-                        originalHeight,
-                        undefined,
-                        'FAST'
-                    );
-                    console.log(`Page ${pageNum} added to PDF`);
-                }
-                
-                pdf.save('document-edited.pdf');
-                console.log('PDF saved successfully');
-            } catch (error) {
-                console.error('Error saving original PDF:', error);
-                alert('Ошибка при сохранении: ' + error.message);
-            }
-        }
-        
-        async function saveA4PDF() {
-            if (!state.pdfDoc || !state.pdfBytes) {
-                alert('Сначала загрузите PDF файл');
-                return;
-            }
-            
-            try {
-                console.log('Starting saveA4PDF');
-                const pdf = new jsPDF({
-                    unit: 'mm',
-                    format: 'a4',
-                    compress: false
-                });
-                
-                for (let pageNum = 1; pageNum <= state.totalPages; pageNum++) {
-                    const page = await state.pdfDoc.getPage(pageNum);
-                    const viewport = page.getViewport({ scale: 1.0 });
-                    const originalWidth = viewport.width;
-                    const originalHeight = viewport.height;
-                    
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = originalWidth * state.renderScale;
-                    tempCanvas.height = originalHeight * state.renderScale;
-                    const tempCtx = tempCanvas.getContext('2d');
-                    
-                    tempCtx.fillStyle = 'white';
-                    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                    
-                    await page.render({
-                        canvasContext: tempCtx,
-                        viewport: page.getViewport({ scale: state.renderScale }),
-                        intent: 'print'
-                    }).promise;
-                    
-                    if (state.layers.some(layer => layer.page === pageNum)) {
-                        const drawingData = elements.drawingCanvas.toDataURL('image/png');
-                        const img = new Image();
-                        img.onload = () => {
-                            tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-                        };
-                        img.src = drawingData;
-                    }
-                    
-                    const a4Width = pdf.internal.pageSize.getWidth();
-                    const a4Height = pdf.internal.pageSize.getHeight();
-                    const scale = Math.min(a4Width / originalWidth, a4Height / originalHeight) * 0.95;
-                    const scaledWidth = originalWidth * scale;
-                    const scaledHeight = originalHeight * scale;
-                    const xOffset = (a4Width - scaledWidth) / 2;
-                    const yOffset = (a4Height - scaledHeight) / 2;
-                    
-                    if (pageNum > 1) pdf.addPage();
-                    pdf.addImage(
-                        tempCanvas.toDataURL('image/png', 1.0),
-                        'PNG',
-                        xOffset,
-                        yOffset,
-                        scaledWidth,
-                        scaledHeight,
-                        undefined,
-                        'FAST'
-                    );
-                    console.log(`Page ${pageNum} added to A4 PDF, scale: ${scale}`);
-                }
-                
-                pdf.save('document-a4.pdf');
-                console.log('A4 PDF saved successfully');
-            } catch (error) {
-                console.error('Error saving A4 PDF:', error);
-                alert('Ошибка при сохранении: ' + error.message);
-            }
-        }
-        
-        function startDrawing(e) {
-            state.isDrawing = true;
-            const rect = elements.drawingCanvas.getBoundingClientRect();
-            const scale = state.currentScale * state.renderScale;
-            state.lastX = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width) / scale;
-            state.lastY = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height) / scale;
-            
-            if (state.currentTool === 'text') {
-                const text = prompt('Введите текст:', 'Текст');
-                if (text) {
-                    elements.ctx.font = `${elements.fontSize.value}px ${elements.fontSelect.value}`;
-                    elements.ctx.fillStyle = elements.colorPicker.value;
-                    elements.ctx.fillText(text, state.lastX * scale, state.lastY * scale);
-                    
-                    state.layers.push({
-                        type: 'text',
-                        x: state.lastX,
-                        y: state.lastY,
-                        text: text,
-                        font: `${elements.fontSize.value}px ${elements.fontSelect.value}`,
-                        color: elements.colorPicker.value,
-                        page: state.currentPage
-                    });
-                }
-                state.isDrawing = false;
-            }
-        }
-        
-        function draw(e) {
-            if (!state.isDrawing || state.currentTool === 'text') return;
-            
-            const rect = elements.drawingCanvas.getBoundingClientRect();
-            const scale = state.currentScale * state.renderScale;
-            const x = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width) / scale;
-            const y = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height) / scale;
-            
-            elements.ctx.strokeStyle = state.currentTool === 'eraser' ? 'white' : elements.colorPicker.value;
-            elements.ctx.lineWidth = elements.brushSize.value * scale;
-            elements.ctx.lineCap = 'round';
-            
-            switch(state.currentTool) {
-                case 'brush':
-                case 'eraser':
-                    elements.ctx.beginPath();
-                    elements.ctx.moveTo(state.lastX * scale, state.lastY * scale);
-                    elements.ctx.lineTo(x * scale, y * scale);
-                    elements.ctx.stroke();
-                    break;
-                
-                case 'rect':
-                    elements.ctx.clearRect(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
-                    redrawLayers();
-                    elements.ctx.beginPath();
-                    elements.ctx.rect(state.lastX * scale, state.lastY * scale, (x - state.lastX) * scale, (y - state.lastY) * scale);
-                    elements.ctx.stroke();
-                    break;
-                
-                case 'circle':
-                    elements.ctx.clearRect(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
-                    redrawLayers();
-                    elements.ctx.beginPath();
-                    const radius = Math.sqrt(Math.pow((x - state.lastX) * scale, 2) + Math.pow((y - state.lastY) * scale, 2));
-                    elements.ctx.arc(state.lastX * scale, state.lastY * scale, radius, 0, Math.PI * 2);
-                    elements.ctx.stroke();
-                    break;
-            }
-            
-            state.lastX = x;
-            state.lastY = y;
-        }
-        
-        function stopDrawing(e) {
-            if (!state.isDrawing || state.currentTool === 'text') return;
-            
-            const rect = elements.drawingCanvas.getBoundingClientRect();
-            const scale = state.currentScale * state.renderScale;
-            const x = (e.clientX - rect.left) * (elements.drawingCanvas.width / rect.width) / scale;
-            const y = (e.clientY - rect.top) * (elements.drawingCanvas.height / rect.height) / scale;
-            
-            if (['rect', 'circle'].includes(state.currentTool)) {
-                state.layers.push({
-                    type: state.currentTool,
-                    x: state.lastX,
-                    y: state.lastY,
-                    endX: x,
-                    endY: y,
-                    color: elements.colorPicker.value,
-                    lineWidth: elements.brushSize.value * scale,
-                    page: state.currentPage
-                });
-            } else if (state.currentTool === 'brush' || state.currentTool === 'eraser') {
-                state.layers.push({
-                    type: 'image',
-                    data: elements.drawingCanvas.toDataURL('image/png'),
-                    page: state.currentPage
-                });
-            }
-            
-            redrawLayers();
-            state.isDrawing = false;
-        }
-        
-        function redrawLayers() {
-            elements.ctx.clearRect(0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
-            
-            const pageLayers = state.layers.filter(layer => layer.page === state.currentPage);
-            const scale = state.currentScale * state.renderScale;
-            pageLayers.forEach(layer => {
-                switch(layer.type) {
-                    case 'rect':
-                        elements.ctx.strokeStyle = layer.color;
-                        elements.ctx.lineWidth = layer.lineWidth;
-                        elements.ctx.beginPath();
-                        elements.ctx.rect(layer.x * scale, layer.y * scale, (layer.endX - layer.x) * scale, (layer.endY - layer.y) * scale);
-                        elements.ctx.stroke();
-                        break;
-                    
-                    case 'circle':
-                        elements.ctx.strokeStyle = layer.color;
-                        elements.ctx.lineWidth = layer.lineWidth;
-                        elements.ctx.beginPath();
-                        const radius = Math.sqrt(Math.pow((layer.endX - layer.x) * scale, 2) + Math.pow((layer.endY - layer.y) * scale, 2));
-                        elements.ctx.arc(layer.x * scale, layer.y * scale, radius, 0, Math.PI * 2);
-                        elements.ctx.stroke();
-                        break;
-                    
-                    case 'text':
-                        elements.ctx.font = layer.font;
-                        elements.ctx.fillStyle = layer.color;
-                        elements.ctx.fillText(layer.text, layer.x * scale, layer.y * scale);
-                        break;
-                    
-                    case 'image':
-                        const img = new Image();
-                        img.onload = () => elements.ctx.drawImage(img, 0, 0, elements.drawingCanvas.width, elements.drawingCanvas.height);
-                        img.src = layer.data;
-                        break;
-                }
-            });
-        }
-        
-        // Запуск приложения
-        init();
+        // Инициализация формы
+        updateFormSteps();
     </script>
 </body>
 </html>
