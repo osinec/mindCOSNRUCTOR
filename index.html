@@ -484,26 +484,7 @@
     </div>
     <script>
         // Массивы для рандомных фраз
-        const introPhrases = [
-            "Я хочу, чтобы вы поняли",
-            "Хочу донести до вас, что ",
-            "Важно понять, что ",
-            "Главное, что я хочу сказать это то, что",
-            "Суть в том, что ",
-            "Основная идея в том, что",
-            "Что действительно важно так это то, что ",
-            "Хочу, чтобы вы уяснили, что ",
-            "Самое главное то, что ",
-            "Ключевой момент в том, что ",
-            "Моя точка зрения в том, что",
-            "Хочу подчеркнуть, ",
-            "Обратите внимание,",
-            "Следует понимать, ",
-            "Необходимо осознать, что ",
-            "Что я хочу донести",
-            "Суть вопроса в том",
-            "Первое, что нужно понять",
-        ];
+        // Удален массив introPhrases
         const importancePhrases = [
             "Это важно, потому что",
             "Важность этого заключается в том, что",
@@ -610,10 +591,11 @@
                 return;
             }
             // Получаем случайные фразы
-            const randomIntro = getRandomElement(introPhrases);
+            // Удалена строка: const randomIntro = getRandomElement(introPhrases);
             const randomImportancePhrase = getRandomElement(importancePhrases);
             const randomActionIntro = getRandomElement(actionIntroPhrases); // Получаем случайную фразу перед действием
-            const output = `${randomIntro}, ${inputData.threeWords}. ${randomImportancePhrase} ${inputData.importance}. ${inputData.metaphor}. ${randomActionIntro} если вам важно ${inputData.goal} - ${inputData.goal2}.`;
+            // Используем фиксированную фразу "Я хочу, чтобы вы поняли"
+            const output = `Я хочу, чтобы вы поняли, ${inputData.threeWords}. ${randomImportancePhrase} ${inputData.importance}. ${inputData.metaphor}. ${randomActionIntro} если вам важно ${inputData.goal} - ${inputData.goal2}.`;
             document.getElementById('output').innerText = output;
             document.getElementById('result').style.display = 'block';
             // Прокрутка к результату
