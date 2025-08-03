@@ -418,7 +418,7 @@
                             </span> 
                         </label>
                         <div class="input-wrapper">
-                            <input type="text" id="threeWords" placeholder="Пример: наука полезна и интересна.">
+                            <input type="text" id="threeWords" placeholder="Пример: Наука полезна и интересна.">
                         </div>
                     </div>
                     <div class="flex-buttons">
@@ -495,7 +495,7 @@
                             </span>
                         </label>
                         <div class="input-wrapper">
-                            <input type="text" id="metaphor" placeholder="Пример: Если бы моисей не убели евреев пойти за ним, не было бы евреев">
+                            <input type="text" id="metaphor" placeholder="Пример: Если бы моисей не убедил евреев пойти за ним, не было бы евреев">
                         </div>
                     </div>
                     <div class="flex-buttons">
@@ -507,7 +507,7 @@
                 <div class="form-step" id="step7-content" style="display:none">
                     <div class="question">
                         <label for="goal2">
-                            Какова цель 2?
+                            Цель аудитории еще раз?
                             <span class="tooltip">
                                 <span class="tooltip-icon">?</span>
                                 <span class="tooltip-text">Повтори цель аудитории еще раз</span>
@@ -555,7 +555,7 @@
             updateFormSteps();
         }
         
-        function prevStep(step) {
+        function prevStep(step) { 
             if (step < 1) return;
             currentStep = step;
             updateFormSteps();
