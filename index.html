@@ -16,6 +16,8 @@
             --dark: #212529;
             --success: #4bb543;
             --warning: #f8961e;
+            /* Добавлен цвет для индикатора загрузки */
+            --info: #6c757d;
         }
         * {
             box-sizing: border-box;
@@ -119,6 +121,7 @@
             text-align: center;
             text-decoration: none;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative; /* Для позиционирования спиннера */
         }
         .btn:hover {
             background: var(--secondary);
@@ -127,6 +130,12 @@
         }
         .btn:active {
             transform: translateY(0);
+        }
+        .btn:disabled {
+            background: var(--info);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         .btn-block {
             display: block;
@@ -278,6 +287,34 @@
             gap: 1rem;
             flex-wrap: wrap;
         }
+
+        /* Стили для спиннера */
+        .spinner {
+            display: none; /* Скрыто по умолчанию */
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .btn .spinner {
+            display: none; /* Скрыто по умолчанию внутри кнопки */
+        }
+        .btn.loading .spinner {
+            display: block; /* Показать спиннер при классе loading */
+        }
+        .btn.loading .btn-text {
+            visibility: hidden; /* Скрыть текст кнопки при загрузке */
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 1rem;
@@ -467,7 +504,11 @@
                     </div>
                     <div class="flex-buttons">
                         <button type="button" class="btn" onclick="prevStep(6)">Назад</button>
-                        <button type="button" class="btn btn-accent" id="generateBtn">Завершить</button>
+                        <!-- Кнопка завершения с индикатором загрузки -->
+                        <button type="button" class="btn btn-accent" id="generateBtn">
+                            <span class="btn-text">Завершить</span>
+                            <span class="spinner"></span>
+                        </button>
                     </div>
                 </div>
             </form>
@@ -475,7 +516,11 @@
                 <h2 class="result-title">Изящная мысль</h2>
                 <div class="result-content" id="output"></div>
                 <div class="flex-buttons">
-                    <button class="btn btn-secondary" id="regenerateVariantBtn">Сгенерировать другой вариант</button>
+                    <!-- Кнопки генерации с индикаторами загрузки -->
+                    <button class="btn btn-secondary" id="regenerateVariantBtn">
+                        <span class="btn-text">Сгенерировать другой вариант</span>
+                        <span class="spinner"></span>
+                    </button>
                     <button class="btn btn-warning" id="regenerateBtn">Изменить данные</button>
                     <button class="btn btn-success" id="copyBtn">Копировать результат</button>
                 </div>
@@ -504,7 +549,6 @@
             "Суть вопроса в том",
             "Первое, что нужно понять",
         ];
-
         const importancePhrases = [
             "Это важно, потому что",
             "Важность этого заключается в том, что",
@@ -521,10 +565,8 @@
             "Без этого невозможно",
             "Если вы этого не поймете",
         ];
-
         // Текущий активный шаг
         let currentStep = 1;
-        
         // Храним введенные данные
         let inputData = {
             coreMessage: '',
@@ -535,7 +577,6 @@
             metaphor: '',
             goal2: ''
         };
-
         // Обработчики событий для подсчета символов
         document.getElementById('coreMessage').addEventListener('input', function() {
             document.getElementById('coreMessageCount').textContent = this.value.length;
@@ -543,13 +584,11 @@
         document.getElementById('importance').addEventListener('input', function() {
             document.getElementById('importanceCount').textContent = this.value.length;
         });
-
         // Функция для получения случайного элемента из массива
         function getRandomElement(array) {
             const randomIndex = Math.floor(Math.random() * array.length);
             return array[randomIndex];
         }
-
         // Навигация по шагам
         function nextStep(step) {
             if (step > 7) return;
@@ -588,47 +627,134 @@
             document.querySelector('.content').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // Генерация результата
-        function generateResult() {
+        // Функция для проверки орфографии через Яндекс.Спеллер
+        async function checkSpelling(text) {
+            const url = 'https://speller.yandex.net/services/spellservice.json/checkText';
+            const params = new URLSearchParams();
+            params.append('text', text);
+            params.append('lang', 'ru'); // Указываем язык
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: params
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка сети: ${response.status}`);
+                }
+
+                const corrections = await response.json();
+
+                // Применяем исправления
+                let correctedText = text;
+                // Сортируем исправления по позиции в обратном порядке, чтобы замены не сбивали индексы
+                corrections.sort((a, b) => b.pos - a.pos);
+
+                for (const correction of corrections) {
+                     // Используем первое предложенное исправление, если оно есть
+                    if (correction.s && correction.s.length > 0) {
+                        const start = correction.pos;
+                        const end = correction.pos + correction.len;
+                        correctedText = correctedText.substring(0, start) + correction.s[0] + correctedText.substring(end);
+                    }
+                }
+
+                return correctedText;
+            } catch (error) {
+                console.error('Ошибка при проверке орфографии:', error);
+                // В случае ошибки возвращаем исходный текст
+                return text;
+            }
+        }
+
+
+        // Генерация результата (асинхронная)
+        async function generateResult() {
             if (!inputData.coreMessage || !inputData.threeWords || !inputData.audience || 
                 !inputData.goal || !inputData.importance || !inputData.metaphor || !inputData.goal2) {
                 alert('Пожалуйста, заполните все поля перед генерацией');
                 return;
             }
-
+            
             // Получаем случайные фразы
             const randomIntro = getRandomElement(introPhrases);
             const randomImportancePhrase = getRandomElement(importancePhrases);
+            const rawOutput = `${randomIntro}, ${inputData.threeWords}. ${randomImportancePhrase} ${inputData.importance}. ${inputData.metaphor}. Поэтому если вам важно ${inputData.goal} - ${inputData.goal2}.`;
 
-            const output = `${randomIntro}, ${inputData.threeWords}. ${randomImportancePhrase} ${inputData.importance}. ${inputData.metaphor}. Поэтому если вам важно ${inputData.goal} - ${inputData.goal2}.`;
-
-            document.getElementById('output').innerText = output;
+            // Проверка орфографии
+            const finalOutput = await checkSpelling(rawOutput);
+            
+            document.getElementById('output').innerText = finalOutput;
             document.getElementById('result').style.display = 'block';
+            
             // Прокрутка к результату
             document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
         }
 
-        document.getElementById('generateBtn').addEventListener('click', function() {
-            // Сохраняем введенные данные
-            inputData = {
-                coreMessage: document.getElementById('coreMessage').value.trim(),
-                threeWords: document.getElementById('threeWords').value.trim(),
-                audience: document.getElementById('audience').value.trim(),
-                goal: document.getElementById('goal').value.trim(),
-                importance: document.getElementById('importance').value.trim(),
-                metaphor: document.getElementById('metaphor').value.trim(),
-                goal2: document.getElementById('goal2').value.trim()
-            };
-
-            generateResult();
-            
-            // Завершаем прогресс
-            document.getElementById('progressBar').style.width = '100%';
-            document.querySelector('#step7-indicator').classList.add('completed');
+        // Обработчик для кнопки "Завершить"
+        document.getElementById('generateBtn').addEventListener('click', async function() {
+             const button = this;
+             const buttonText = button.querySelector('.btn-text');
+             const spinner = button.querySelector('.spinner');
+             
+             // Сохраняем введенные данные
+             inputData = {
+                 coreMessage: document.getElementById('coreMessage').value.trim(),
+                 threeWords: document.getElementById('threeWords').value.trim(),
+                 audience: document.getElementById('audience').value.trim(),
+                 goal: document.getElementById('goal').value.trim(),
+                 importance: document.getElementById('importance').value.trim(),
+                 metaphor: document.getElementById('metaphor').value.trim(),
+                 goal2: document.getElementById('goal2').value.trim()
+             };
+             
+             // Показать спиннер и отключить кнопку
+             button.classList.add('loading');
+             button.disabled = true;
+             buttonText.textContent = 'Обработка...'; // Изменяем текст на время загрузки
+             
+             try {
+                 await generateResult();
+                 // Завершаем прогресс
+                 document.getElementById('progressBar').style.width = '100%';
+                 document.querySelector('#step7-indicator').classList.add('completed');
+             } catch (error) {
+                 console.error("Ошибка генерации:", error);
+                 alert("Произошла ошибка при генерации текста.");
+             } finally {
+                 // Скрыть спиннер и включить кнопку
+                 button.classList.remove('loading');
+                 button.disabled = false;
+                 buttonText.textContent = 'Завершить'; // Восстанавливаем оригинальный текст
+                 spinner.style.display = 'none'; // Убедимся, что спиннер скрыт
+             }
         });
 
-        // Кнопка "Сгенерировать другой вариант"
-        document.getElementById('regenerateVariantBtn').addEventListener('click', generateResult);
+        // Обработчик для кнопки "Сгенерировать другой вариант"
+        document.getElementById('regenerateVariantBtn').addEventListener('click', async function() {
+            const button = this;
+            const buttonText = button.querySelector('.btn-text');
+            const spinner = button.querySelector('.spinner');
+
+            // Показать спиннер и отключить кнопку
+            button.classList.add('loading');
+            button.disabled = true;
+            buttonText.textContent = 'Генерация...'; // Изменяем текст на время загрузки
+
+            try {
+                await generateResult(); // Используем ту же функцию генерации
+            } catch (error) {
+                console.error("Ошибка повторной генерации:", error);
+                alert("Произошла ошибка при генерации нового варианта.");
+            } finally {
+                // Скрыть спиннер и включить кнопку
+                button.classList.remove('loading');
+                button.disabled = false;
+                buttonText.textContent = 'Сгенерировать другой вариант'; // Восстанавливаем оригинальный текст
+                spinner.style.display = 'none'; // Убедимся, что спиннер скрыт
+            }
+        });
 
         // Кнопка "Изменить данные"
         document.getElementById('regenerateBtn').addEventListener('click', function() {
@@ -636,7 +762,6 @@
             currentStep = 1;
             updateFormSteps();
         });
-
         // Копирование результата
         document.getElementById('copyBtn').addEventListener('click', function() {
             const outputText = document.getElementById('output').innerText;
@@ -650,7 +775,6 @@
                 alert('Не удалось скопировать текст. Попробуйте выделить и скопировать вручную.');
             });
         });
-
         // Инициализация формы
         updateFormSteps();
     </script>
