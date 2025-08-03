@@ -17,13 +17,11 @@
             --success: #4bb543;
             --warning: #f8961e;
         }
-        
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        
         body {
             font-family: 'Montserrat', sans-serif;
             line-height: 1.6;
@@ -32,7 +30,6 @@
             min-height: 100vh;
             padding: 2rem;
         }
-        
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -41,45 +38,37 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
-        
         header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
             padding: 2.5rem 2rem;
             text-align: center;
         }
-        
         h1 {
             font-family: 'Playfair Display', serif;
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
         }
-        
         .subtitle {
             font-size: 1.1rem;
             opacity: 0.9;
             max-width: 600px;
             margin: 0 auto;
         }
-        
         .content {
             padding: 2rem;
         }
-        
         .form-step {
             margin-bottom: 2rem;
             animation: fadeIn 0.5s ease-out;
         }
-        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
         .question {
             margin-bottom: 1.5rem;
         }
-        
         label {
             display: block;
             font-weight: 600;
@@ -87,12 +76,10 @@
             color: var(--secondary);
             font-size: 1.1rem;
         }
-        
         .input-wrapper {
             position: relative;
             margin-bottom: 0.5rem;
         }
-        
         input[type="text"], textarea {
             width: 100%;
             padding: 1rem;
@@ -103,25 +90,21 @@
             transition: all 0.3s ease;
             background-color: #f8f9fa;
         }
-        
         input[type="text"]:focus, textarea:focus {
             outline: none;
             border-color: var(--accent);
             background-color: white;
             box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
         }
-        
         textarea {
             min-height: 120px;
             resize: vertical;
         }
-        
         .char-counter {
             font-size: 0.8rem;
             color: #6c757d;
             text-align: right;
         }
-        
         .btn {
             display: inline-block;
             background: var(--primary);
@@ -137,46 +120,42 @@
             text-decoration: none;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        
         .btn:hover {
             background: var(--secondary);
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
-        
         .btn:active {
             transform: translateY(0);
         }
-        
         .btn-block {
             display: block;
             width: 100%;
         }
-        
         .btn-accent {
             background: var(--accent);
         }
-        
         .btn-accent:hover {
             background: #3aa8d8;
         }
-        
         .btn-success {
             background: var(--success);
         }
-        
         .btn-success:hover {
             background: #3a9a34;
         }
-        
         .btn-warning {
             background: var(--warning);
         }
-        
         .btn-warning:hover {
             background: #e07d0e;
         }
-        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
         .result-container {
             display: none;
             margin-top: 2rem;
@@ -185,20 +164,17 @@
             border-radius: 12px;
             border-left: 5px solid var(--primary);
         }
-        
         .result-title {
             font-family: 'Playfair Display', serif;
             color: var(--secondary);
             margin-bottom: 1rem;
             font-size: 1.8rem;
         }
-        
         .result-content {
             white-space: pre-line;
             line-height: 1.8;
             margin-bottom: 1.5rem;
         }
-        
         .progress-container {
             width: 100%;
             height: 8px;
@@ -207,27 +183,23 @@
             margin-bottom: 2rem;
             overflow: hidden;
         }
-        
         .progress-bar {
             height: 100%;
             background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
             width: 14.28%;
             transition: width 0.4s ease;
         }
-        
         .step-indicator {
             display: flex;
             justify-content: space-between;
             margin-bottom: 1.5rem;
         }
-        
         .step {
             text-align: center;
             flex: 1;
             position: relative;
             cursor: pointer;
         }
-        
         .step-number {
             width: 36px;
             height: 36px;
@@ -241,38 +213,31 @@
             font-weight: 600;
             transition: all 0.3s ease;
         }
-        
         .step.active .step-number {
             background: var(--primary);
             color: white;
         }
-        
         .step.completed .step-number {
             background: var(--success);
             color: white;
         }
-        
         .step-label {
             font-size: 0.9rem;
             color: #6c757d;
         }
-        
         .step.active .step-label {
             color: var(--dark);
             font-weight: 600;
         }
-        
         .step.completed .step-label {
             color: var(--dark);
         }
-        
         .tooltip {
             position: relative;
             display: inline-block;
             margin-left: 0.5rem;
             cursor: pointer;
         }
-        
         .tooltip-icon {
             display: inline-flex;
             align-items: center;
@@ -285,7 +250,6 @@
             font-size: 0.8rem;
             font-weight: bold;
         }
-        
         .tooltip-text {
             visibility: hidden;
             width: 200px;
@@ -304,42 +268,35 @@
             font-size: 0.9rem;
             font-weight: normal;
         }
-        
         .tooltip:hover .tooltip-text {
             visibility: visible;
             opacity: 1;
         }
-        
         .flex-buttons {
             display: flex;
             justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
-        
         @media (max-width: 768px) {
             body {
                 padding: 1rem;
             }
-            
             h1 {
                 font-size: 2rem;
             }
-            
             .container {
                 border-radius: 12px;
             }
-            
             header {
                 padding: 1.5rem 1rem;
             }
-            
             .content {
                 padding: 1.5rem;
             }
-            
             .step-label {
                 display: none;
             }
-            
             .btn {
                 padding: 0.8rem 1rem;
                 font-size: 0.9rem;
@@ -353,12 +310,10 @@
             <h1>Мастер упаковки мыслей</h1>
             <p class="subtitle">Донеси любую мысль ёмко и красиво</p>
         </header>
-        
         <div class="content">
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
-            
             <div class="step-indicator">
                 <div class="step active" id="step1-indicator" onclick="goToStep(1)">
                     <div class="step-number">1</div>
@@ -389,7 +344,6 @@
                     <div class="step-label">Цель 2</div>
                 </div>
             </div>
-            
             <form id="thoughtForm">
                 <div class="form-step" id="step1-content">
                     <div class="question">
@@ -407,7 +361,6 @@
                     </div>
                     <button type="button" class="btn btn-block" onclick="nextStep(2)">Далее</button>
                 </div>
-                
                 <div class="form-step" id="step2-content" style="display:none">
                     <div class="question">
                         <label for="threeWords">
@@ -426,7 +379,6 @@
                         <button type="button" class="btn btn-accent" onclick="nextStep(3)">Далее</button>
                     </div>
                 </div>
-                
                 <div class="form-step" id="step3-content" style="display:none">
                     <div class="question">
                         <label for="audience">
@@ -445,7 +397,6 @@
                         <button type="button" class="btn btn-accent" onclick="nextStep(4)">Далее</button>
                     </div>
                 </div>
-                
                 <div class="form-step" id="step4-content" style="display:none">
                     <div class="question">
                         <label for="goal">
@@ -464,7 +415,6 @@
                         <button type="button" class="btn btn-accent" onclick="nextStep(5)">Далее</button>
                     </div>
                 </div>
-                
                 <div class="form-step" id="step5-content" style="display:none">
                     <div class="question">
                         <label for="importance">
@@ -484,7 +434,6 @@
                         <button type="button" class="btn btn-accent" onclick="nextStep(6)">Далее</button>
                     </div>
                 </div>
-                
                 <div class="form-step" id="step6-content" style="display:none">
                     <div class="question">
                         <label for="metaphor">
@@ -503,7 +452,6 @@
                         <button type="button" class="btn btn-accent" onclick="nextStep(7)">Далее</button>
                     </div>
                 </div>
-                
                 <div class="form-step" id="step7-content" style="display:none">
                     <div class="question">
                         <label for="goal2">
@@ -523,119 +471,200 @@
                     </div>
                 </div>
             </form>
-            
             <div class="result-container" id="result">
                 <h2 class="result-title">Изящная мысль</h2>
                 <div class="result-content" id="output"></div>
                 <div class="flex-buttons">
+                    <button class="btn btn-secondary" id="regenerateVariantBtn">Сгенерировать другой вариант</button>
                     <button class="btn btn-warning" id="regenerateBtn">Изменить данные</button>
                     <button class="btn btn-success" id="copyBtn">Копировать результат</button>
                 </div>
             </div>
         </div>
     </div>
-
     <script>
+        // Массивы для рандомных фраз
+        const introPhrases = [
+            "Я хочу, чтобы вы поняли",
+            "Хочу донести до вас",
+            "Моя ключевая мысль",
+            "Важно понять следующее",
+            "Главное, что я хочу сказать",
+            "Позвольте мне донести",
+            "Суть в следующем",
+            "Основная идея",
+            "Что действительно важно",
+            "Хочу, чтобы вы уяснили",
+            "Самое главное",
+            "Ключевой момент",
+            "Моя точка зрения",
+            "Хочу подчеркнуть",
+            "Обратите внимание",
+            "Следует понимать",
+            "Необходимо осознать",
+            "Вот что я имею в виду",
+            "Моя позиция",
+            "Что я хочу донести",
+            "Суть вопроса в том",
+            "По моему мнению",
+            "Я стремлюсь донести",
+            "Важнейшая мысль",
+            "С чего начать? Вот это",
+            "Первое, что нужно понять",
+            "Самое ценное, что я скажу",
+            "Моя основная тезис",
+            "В центре моей мысли",
+            "Предельно ясно"
+        ];
+
+        const importancePhrases = [
+            "Это важно, потому что",
+            "Почему это важно?",
+            "Важность этого заключается в том, что",
+            "Это имеет значение, так как",
+            "Причина важности в следующем",
+            "Зачем это нужно? Потому что",
+            "Это критично важно, ведь",
+            "Смысл в том, что",
+            "Важно это потому",
+            "Потому что без этого",
+            "Это необходимо, поскольку",
+            "Значимость проявляется в том, что",
+            "Реальная важность здесь",
+            "Основание важности",
+            "Это ключевой аспект, потому что",
+            "Если этого не понять, то",
+            "Без этого невозможно",
+            "Это фундаментально, так как",
+            "Суть важности в том",
+            "Почему это должно волновать?",
+            "Это меняет дело, потому что",
+            "Разница в том, что",
+            "Это определяет успех, так как",
+            "Без этого вы рискуете",
+            "Это меняет перспективу, ведь",
+            "Потому что это влияет на",
+            "Это важно для тех, кто",
+            "Если вы этого не поймете",
+            "Это лежит в основе, потому что",
+            "Смысл всей идеи в том"
+        ];
+
         // Текущий активный шаг
         let currentStep = 1;
         
+        // Храним введенные данные
+        let inputData = {
+            coreMessage: '',
+            threeWords: '',
+            audience: '',
+            goal: '',
+            importance: '',
+            metaphor: '',
+            goal2: ''
+        };
+
         // Обработчики событий для подсчета символов
         document.getElementById('coreMessage').addEventListener('input', function() {
             document.getElementById('coreMessageCount').textContent = this.value.length;
         });
-        
         document.getElementById('importance').addEventListener('input', function() {
             document.getElementById('importanceCount').textContent = this.value.length;
         });
-        
+
+        // Функция для получения случайного элемента из массива
+        function getRandomElement(array) {
+            const randomIndex = Math.floor(Math.random() * array.length);
+            return array[randomIndex];
+        }
+
         // Навигация по шагам
         function nextStep(step) {
             if (step > 7) return;
             currentStep = step;
             updateFormSteps();
         }
-        
         function prevStep(step) { 
             if (step < 1) return;
             currentStep = step;
             updateFormSteps();
         }
-        
         function goToStep(step) {
             if (step < 1 || step > 7) return;
             currentStep = step;
             updateFormSteps();
         }
-        
         function updateFormSteps() {
             // Скрыть все шаги
             document.querySelectorAll('.form-step').forEach(step => {
                 step.style.display = 'none';
             });
-            
             // Показать текущий шаг
             document.querySelector(`#step${currentStep}-content`).style.display = 'block';
-            
             // Обновить индикаторы шагов
             document.querySelectorAll('.step').forEach((step, index) => {
                 step.classList.remove('active', 'completed');
-                
                 if (index + 1 === currentStep) {
                     step.classList.add('active');
                 } else if (index + 1 < currentStep) {
                     step.classList.add('completed');
                 }
             });
-            
             // Обновить прогресс-бар
             document.getElementById('progressBar').style.width = `${(currentStep-1)*14.28}%`;
-            
             // Прокрутить к верху формы
             document.querySelector('.content').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        
+
         // Генерация результата
-        document.getElementById('generateBtn').addEventListener('click', function() {
-            const coreMessage = document.getElementById('coreMessage').value;
-            const threeWords = document.getElementById('threeWords').value;
-            const audience = document.getElementById('audience').value;
-            const goal = document.getElementById('goal').value;
-            const importance = document.getElementById('importance').value;
-            const metaphor = document.getElementById('metaphor').value;
-            const goal2 = document.getElementById('goal2').value;
-            
-            if (!coreMessage || !threeWords || !audience || !goal || !importance || !metaphor || !goal2) {
+        function generateResult() {
+            if (!inputData.coreMessage || !inputData.threeWords || !inputData.audience || 
+                !inputData.goal || !inputData.importance || !inputData.metaphor || !inputData.goal2) {
                 alert('Пожалуйста, заполните все поля перед генерацией');
                 return;
             }
-            
-            const output = `🔷 Я хочу чтобы вы поняли: ${threeWords}\n\n` +
-                           `🔷 Ключевая мысль: ${coreMessage}\n\n` +
-                           `🔷 Для кого: ${audience}\n\n` +
-                           `🔷 Цель: ${goal}\n\n` +
-                           `🔷 Почему это важно: ${importance}\n\n` +
-                           `🔷 Метафора/аналогия: ${metaphor}\n\n` +
-                           `🔷 Цель 2: ${goal2}\n\n` +
-                           `🔷 Повтор ключевой мысли: ${coreMessage}`;
-            
+
+            // Получаем случайные фразы
+            const randomIntro = getRandomElement(introPhrases);
+            const randomImportancePhrase = getRandomElement(importancePhrases);
+
+            const output = `${randomIntro}, ${inputData.threeWords}. ${randomImportancePhrase} ${inputData.importance}. ${inputData.metaphor}. Поэтому если вам важно ${inputData.goal} - ${inputData.goal2}.`;
+
             document.getElementById('output').innerText = output;
             document.getElementById('result').style.display = 'block';
-            
             // Прокрутка к результату
             document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            // Сохраняем введенные данные
+            inputData = {
+                coreMessage: document.getElementById('coreMessage').value.trim(),
+                threeWords: document.getElementById('threeWords').value.trim(),
+                audience: document.getElementById('audience').value.trim(),
+                goal: document.getElementById('goal').value.trim(),
+                importance: document.getElementById('importance').value.trim(),
+                metaphor: document.getElementById('metaphor').value.trim(),
+                goal2: document.getElementById('goal2').value.trim()
+            };
+
+            generateResult();
             
             // Завершаем прогресс
             document.getElementById('progressBar').style.width = '100%';
             document.querySelector('#step7-indicator').classList.add('completed');
         });
-        
+
+        // Кнопка "Сгенерировать другой вариант"
+        document.getElementById('regenerateVariantBtn').addEventListener('click', generateResult);
+
         // Кнопка "Изменить данные"
         document.getElementById('regenerateBtn').addEventListener('click', function() {
             document.getElementById('result').style.display = 'none';
             currentStep = 1;
             updateFormSteps();
         });
-        
+
         // Копирование результата
         document.getElementById('copyBtn').addEventListener('click', function() {
             const outputText = document.getElementById('output').innerText;
@@ -649,7 +678,7 @@
                 alert('Не удалось скопировать текст. Попробуйте выделить и скопировать вручную.');
             });
         });
-        
+
         // Инициализация формы
         updateFormSteps();
     </script>
