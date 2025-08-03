@@ -498,7 +498,7 @@
                     <strong>Фразы, выделенные зеленым цветом,</strong> являются фиксированными. Вы можете скопировать результат и заменить их на любые другие по вашему усмотрению.
                 </div>
                 <div class="flex-buttons">
-                    <button class="btn btn-secondary" id="regenerateVariantBtn">Сгенерировать другой вариант</button>
+                    <!-- Кнопка удалена -->
                     <button class="btn btn-warning" id="regenerateBtn">Изменить данные</button>
                     <button class="btn btn-success" id="copyBtn">Копировать результат</button>
                 </div>
@@ -569,10 +569,8 @@
                 alert('Пожалуйста, заполните все поля перед генерацией');
                 return;
             }
-            
             // Формируем финальный текст по заданной структуре с выделением фиксированных фраз
             const output = `<span class="fixed-phrase">Я хочу, чтобы вы поняли,</span> ${inputData.threeWords}. <span class="fixed-phrase">Если вы этого не поймете,</span> ${inputData.importance}. ${inputData.metaphor}. <span class="fixed-phrase">Поэтому, если вам важно</span> ${inputData.goal}, <span class="fixed-phrase">поймите,</span> ${inputData.goal2}.`;
-            
             document.getElementById('output').innerHTML = output;
             document.getElementById('result').style.display = 'block';
             // Прокрутка к результату
